@@ -25,7 +25,7 @@ jobs:
         run: go build ./cmd/server
 
       - name: Build application image
-        run: docker build -t ec2-go-service:test ./app
+        run: docker build -t ghcr.io/bh-an/ec2-go-service:test ./app
 
   terraform:
     runs-on: ubuntu-latest
@@ -43,6 +43,12 @@ jobs:
       - name: Terraform validate
         working-directory: infra/terraform
         run: terraform validate
+
+      - name: Verify environment files exist
+        working-directory: infra/terraform
+        run: |
+          test -f environments/dev.tfvars
+          test -f environments/stage.tfvars
 
   cdk:
     runs-on: ubuntu-latest
@@ -64,8 +70,16 @@ jobs:
         working-directory: infra/cdk
         run: go build .
 
-      - name: CDK synth
+      - name: CDK synth (dev)
         working-directory: infra/cdk
         env:
-          DOCKER_IMAGE: ec2-go-service:test
+          DEPLOY_ENV: dev
+          DOCKER_IMAGE: ghcr.io/bh-an/ec2-go-service:test
+        run: cdk synth
+
+      - name: CDK synth (stage)
+        working-directory: infra/cdk
+        env:
+          DEPLOY_ENV: stage
+          DOCKER_IMAGE: ghcr.io/bh-an/ec2-go-service:test
         run: cdk synth

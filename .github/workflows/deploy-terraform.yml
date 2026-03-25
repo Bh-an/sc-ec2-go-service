@@ -3,14 +3,27 @@ name: deploy-terraform
 on:
   workflow_dispatch:
     inputs:
+      environment:
+        description: Target environment (uses GitHub Environments)
+        type: choice
+        required: true
+        options: [dev, stage]
       docker_image:
-        description: Docker image to deploy
+        description: Full image ref, e.g. ghcr.io/bh-an/ec2-go-service@sha256:...
         required: true
         type: string
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+    concurrency:
+      group: terraform-${{ inputs.environment }}
+      cancel-in-progress: false
     steps:
       - uses: actions/checkout@v4
 
@@ -21,8 +34,8 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-region: ap-south-1
-          role-to-assume: arn:aws:iam::<account-id>:role/<consumer-deploy-role>
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
 
       - name: Terraform init
         working-directory: infra/terraform
@@ -36,4 +49,5 @@ jobs:
         working-directory: infra/terraform
         run: |
           terraform apply -auto-approve \
+            -var-file="environments/${{ inputs.environment }}.tfvars" \
             -var="docker_image=${{ inputs.docker_image }}"
