@@ -26,3 +26,46 @@ jobs:
 
       - name: Build application image
         run: docker build -t ec2-go-service:test ./app
+
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.5
+
+      - name: Terraform init
+        working-directory: infra/terraform
+        run: terraform init -backend=false
+
+      - name: Terraform validate
+        working-directory: infra/terraform
+        run: terraform validate
+
+  cdk:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: infra/cdk/go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install CDK CLI
+        run: npm install -g aws-cdk
+
+      - name: Build Go CDK app
+        working-directory: infra/cdk
+        run: go build .
+
+      - name: CDK synth
+        working-directory: infra/cdk
+        env:
+          DOCKER_IMAGE: ec2-go-service:test
+        run: cdk synth

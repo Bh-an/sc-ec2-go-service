@@ -22,12 +22,24 @@ jobs:
         with:
           node-version: 20
 
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ap-south-1
+          role-to-assume: arn:aws:iam::<account-id>:role/<consumer-deploy-role>
+
       - name: Install CDK CLI
         run: npm install -g aws-cdk
 
       - name: Build Go CDK app
         working-directory: infra/cdk
         run: go build .
+
+      - name: CDK synth
+        working-directory: infra/cdk
+        env:
+          DOCKER_IMAGE: ${{ inputs.docker_image }}
+        run: cdk synth
 
       - name: Deploy stack
         working-directory: infra/cdk

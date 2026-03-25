@@ -11,8 +11,9 @@ It owns:
 
 It does not own the shared infrastructure modules themselves.
 
-- Terraform modules and the baked-host AMI pipeline live in `../ec2-assignment`
-- CDK constructs and Go bindings live in `../cdk-ec2-service-module`
+- Terraform modules and the baked-host AMI pipeline live in `https://github.com/Bh-an/sc-terraform-ec2-service-module`
+- CDK constructs live in `https://github.com/Bh-an/cdk-ec2-service-module`
+- Go CDK bindings live in `https://github.com/Bh-an/cdk-ec2-service-module-go`
 
 ## Repo Layout
 
@@ -33,7 +34,7 @@ docker build -t ec2-go-service:latest .
 
 ## Terraform Consumer Path
 
-The Terraform path consumes the reusable modules in `../ec2-assignment/terraform/modules`.
+The Terraform path consumes the reusable modules in `sc-terraform-ec2-service-module` using Git module sources pinned to `v0.1.0`.
 
 ```bash
 cd infra/terraform
@@ -42,11 +43,9 @@ terraform validate
 terraform apply
 ```
 
-By default this workspace points at the sibling Terraform repo using a local module source. In a real multi-repo setup, replace those sources with the Git URLs for the Terraform repo.
-
 ## CDK Consumer Path
 
-The Go CDK path consumes the generated Go bindings from `../cdk-ec2-service-module/dist/go/cdkec2servicemodule`.
+The Go CDK path consumes the published Go bindings from `github.com/Bh-an/cdk-ec2-service-module-go/cdkec2servicemodule` at `v0.1.0`.
 
 ```bash
 cd infra/cdk
@@ -54,4 +53,6 @@ go build .
 cdk synth
 ```
 
-The included `go.mod` uses a local `replace` directive for this workspace. In a real multi-repo setup, point that dependency at the published Go module instead.
+## Release Line
+
+This refactored split model is the `v0.1.0` service-repo baseline.
