@@ -1,0 +1,28 @@
+name: test
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  app:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: app/go.mod
+
+      - name: Run app tests
+        working-directory: app
+        run: go test ./...
+
+      - name: Build app binary
+        working-directory: app
+        run: go build ./cmd/server
+
+      - name: Build application image
+        run: docker build -t ec2-go-service:test ./app

@@ -1,0 +1,23 @@
+# Go
+app/server
+app/coverage.out
+
+# Terraform
+infra/terraform/.terraform/
+infra/terraform/*.tfstate
+infra/terraform/*.tfstate.backup
+infra/terraform/crash.log
+infra/terraform/override.tf
+infra/terraform/override.tf.json
+infra/terraform/*_override.tf
+infra/terraform/*.tfvars
+!infra/terraform/*.tfvars.example
+
+# CDK
+infra/cdk/cdk.out/
+infra/cdk/cdk
+
+# Misc
+*.log
+.DS_Store
+.env
