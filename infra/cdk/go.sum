@@ -1,3 +1,5 @@
+github.com/Bh-an/cdk-ec2-service-module-go/cdkec2servicemodule v0.1.0 h1:uAKW/P7G3ANdosyL33z7D7FZp2GQ3IcRbcDq283rHyQ=
+github.com/Bh-an/cdk-ec2-service-module-go/cdkec2servicemodule v0.1.0/go.mod h1:me5tjNSbXz/xz7Kb2NJlKTYVHpsCvURErk0XTCXE6F4=
 github.com/Masterminds/semver/v3 v3.4.0 h1:Zog+i5UMtVoCU8oKka5P7i9q9HgrJeGzI9SA1Xbatp0=
 github.com/Masterminds/semver/v3 v3.4.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/aws/aws-cdk-go/awscdk/v2 v2.207.0 h1:W7y/4Fhg3qcnBbrhw9+mIh6gTXm5pIncb8kf6n+yDLk=
@@ -24,8 +26,6 @@ github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWE
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
-github.com/Bh-an/cdk-ec2-service-module-go/cdkec2servicemodule v0.1.0 h1:b2GtLWHXeL/AlB+idPOIbmqmF5RO4PPjAD7CHBm3g40=
-github.com/Bh-an/cdk-ec2-service-module-go/cdkec2servicemodule v0.1.0/go.mod h1:RqU6hcSQ2fOFjm230lOzWOWuEv7bX6WCeN9LNQstMOo=
 github.com/stretchr/testify v1.11.1 h1:7s2iGBzp5EwR7/aIZr8ao5+dra3wiQyKjjFuvgVKu7U=
 github.com/stretchr/testify v1.11.1/go.mod h1:wZwfW3scLgRK+23gO65QZefKpKQRnfz6sD981Nm4B6U=
 github.com/yuin/goldmark v1.7.16 h1:n+CJdUxaFMiDUNnWC3dMWCIQJSkxH4uz3ZwQBkAlVNE=
