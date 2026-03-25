@@ -1,0 +1,36 @@
+name: deploy-cdk
+
+on:
+  workflow_dispatch:
+    inputs:
+      docker_image:
+        description: Docker image to deploy
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: infra/cdk/go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install CDK CLI
+        run: npm install -g aws-cdk
+
+      - name: Build Go CDK app
+        working-directory: infra/cdk
+        run: go build .
+
+      - name: Deploy stack
+        working-directory: infra/cdk
+        env:
+          DOCKER_IMAGE: ${{ inputs.docker_image }}
+        run: cdk deploy --require-approval never

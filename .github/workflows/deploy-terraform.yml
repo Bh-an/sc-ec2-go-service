@@ -1,0 +1,33 @@
+name: deploy-terraform
+
+on:
+  workflow_dispatch:
+    inputs:
+      docker_image:
+        description: Docker image to deploy
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.10.5
+
+      - name: Terraform init
+        working-directory: infra/terraform
+        run: terraform init
+
+      - name: Terraform validate
+        working-directory: infra/terraform
+        run: terraform validate
+
+      - name: Terraform apply
+        working-directory: infra/terraform
+        run: |
+          terraform apply -auto-approve \
+            -var="docker_image=${{ inputs.docker_image }}"
