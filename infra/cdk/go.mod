@@ -5,7 +5,7 @@ go 1.25.0
 require (
 	github.com/aws/aws-cdk-go/awscdk/v2 v2.207.0
 	github.com/aws/jsii-runtime-go v1.127.0
-	github.com/Bh-an/cdk-ec2-service-module-go/cdkec2servicemodule v0.0.6
+	github.com/Bh-an/cdk-ec2-service-module-go/cdkec2servicemodule v0.1.0
 )
 
 require (
@@ -27,5 +27,3 @@ require (
 	golang.org/x/tools/cmd/godoc v0.1.0-deprecated // indirect
 	golang.org/x/tools/godoc v0.1.0-deprecated // indirect
 )
-
-replace github.com/Bh-an/cdk-ec2-service-module-go/cdkec2servicemodule => ../../../cdk-ec2-service-module/dist/go/cdkec2servicemodule

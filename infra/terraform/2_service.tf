@@ -1,5 +1,5 @@
 module "service" {
-  source = "../../../ec2-assignment/terraform/modules/ec2-docker-service"
+  source = "git::https://github.com/Bh-an/sc-terraform-ec2-service-module.git//terraform/modules/ec2-docker-service?ref=v0.1.0"
 
   platform             = var.platform
   environment          = var.environment
