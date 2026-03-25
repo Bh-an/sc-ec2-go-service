@@ -1,9 +1,9 @@
-module github.com/Bh-an/ec2-go-service/infra/cdk
+module github.com/Bh-an/sc-ec2-go-service/infra/cdk
 
 go 1.25.0
 
 require (
-	github.com/Bh-an/cdk-ec2-service-module-go/cdkec2servicemodule v0.1.0
+	github.com/Bh-an/sc-cdk-ec2-service-module-go/cdkec2servicemodule v0.1.2
 	github.com/aws/aws-cdk-go/awscdk/v2 v2.207.0
 	github.com/aws/jsii-runtime-go v1.127.0
 )

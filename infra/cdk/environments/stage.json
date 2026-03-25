@@ -6,7 +6,7 @@
   "serviceName": "ec2-go-service",
   "sharedTags": {
     "ManagedBy": "CDK",
-    "ServiceRepo": "ec2-go-service"
+    "ServiceRepo": "sc-ec2-go-service"
   },
   "vpc": {
     "cidr": "10.31.0.0/16",
