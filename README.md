@@ -1,6 +1,6 @@
-# ec2-go-service
+# sc-ec2-go-service
 
-`ec2-go-service` is the service-team repo for the assignment-aligned Go API.
+`sc-ec2-go-service` is the service-team repo for the assignment-aligned Go API.
 
 It owns:
 
@@ -43,7 +43,7 @@ The publish workflow pushes immutable `sha-<commitsha>` tags and stores the fina
 
 ## CDK Consumer Path
 
-The Go CDK path is the primary deployment path. It consumes the published Go bindings from `github.com/Bh-an/cdk-ec2-service-module-go/cdkec2servicemodule` at `v0.1.0`.
+The Go CDK path is the primary deployment path. It consumes the published Go bindings from `github.com/Bh-an/sc-cdk-ec2-service-module-go/cdkec2servicemodule` on the `v0.1.2` release line.
 
 ```bash
 cd infra/cdk
@@ -63,7 +63,7 @@ Runtime deploy inputs:
 
 ## Terraform Consumer Path
 
-The Terraform path remains an aligned secondary path. It consumes the reusable modules in `https://github.com/Bh-an/sc-tf-ec2-service-module` using Git module sources pinned to `v0.1.0`.
+The Terraform path remains an aligned secondary path. It consumes the reusable modules in `https://github.com/Bh-an/sc-tf-ec2-service-module` using Git module sources pinned to `v0.1.1`.
 
 ```bash
 cd infra/terraform
@@ -98,4 +98,8 @@ Both deploy workflows use GitHub Environments named `dev` and `stage`, with:
 
 ## Release Line
 
-This refactored split model is the `v0.1.0` service-repo baseline.
+This refactored split model now tracks the shared `v0.1.2` CDK release line and the aligned Terraform `v0.1.1` release line while `dev` is in flight.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for branch usage, Conventional Commit rules, and required verification commands.

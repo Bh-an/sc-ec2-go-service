@@ -1,5 +1,3 @@
-github.com/Bh-an/cdk-ec2-service-module-go/cdkec2servicemodule v0.1.0 h1:uAKW/P7G3ANdosyL33z7D7FZp2GQ3IcRbcDq283rHyQ=
-github.com/Bh-an/cdk-ec2-service-module-go/cdkec2servicemodule v0.1.0/go.mod h1:me5tjNSbXz/xz7Kb2NJlKTYVHpsCvURErk0XTCXE6F4=
 github.com/Masterminds/semver/v3 v3.4.0 h1:Zog+i5UMtVoCU8oKka5P7i9q9HgrJeGzI9SA1Xbatp0=
 github.com/Masterminds/semver/v3 v3.4.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/aws/aws-cdk-go/awscdk/v2 v2.207.0 h1:W7y/4Fhg3qcnBbrhw9+mIh6gTXm5pIncb8kf6n+yDLk=

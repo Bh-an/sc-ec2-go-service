@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	cdkec2servicemodule "github.com/Bh-an/cdk-ec2-service-module-go/cdkec2servicemodule"
+	cdkec2servicemodule "github.com/Bh-an/sc-cdk-ec2-service-module-go/cdkec2servicemodule"
 	awscdk "github.com/aws/aws-cdk-go/awscdk/v2"
 	awsec2 "github.com/aws/aws-cdk-go/awscdk/v2/awsec2"
 	_jsii_ "github.com/aws/jsii-runtime-go"
@@ -87,7 +87,7 @@ func resolveSharedTags(cfg *environmentConfig) *map[string]*string {
 	tags := map[string]*string{
 		"Environment": _jsii_.String(cfg.Environment),
 		"Platform":    _jsii_.String(cfg.Platform),
-		"ServiceRepo": _jsii_.String("ec2-go-service"),
+		"ServiceRepo": _jsii_.String("sc-ec2-go-service"),
 	}
 
 	for key, value := range cfg.SharedTags {
