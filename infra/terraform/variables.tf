@@ -49,7 +49,7 @@ variable "key_pair_name" {
 variable "docker_image" {
   description = "Docker image to deploy on the instance."
   type        = string
-  default     = "ec2-go-service:latest"
+  default     = "ghcr.io/bh-an/ec2-go-service:latest"
 }
 
 variable "ami_name_prefix" {

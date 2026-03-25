@@ -6,4 +6,23 @@ It uses the published Go bindings from:
 
 - `github.com/Bh-an/cdk-ec2-service-module-go/cdkec2servicemodule v0.1.0`
 
-That deploys the same EC2 + Docker + Nginx service shape as the Terraform path.
+This is the primary deployment path for the service repo.
+
+## Inputs
+
+- `DEPLOY_ENV=dev|stage`
+- `DOCKER_IMAGE=ghcr.io/bh-an/ec2-go-service@sha256:<digest>`
+
+Environment defaults live under `environments/`:
+
+- `dev.json`
+- `stage.json`
+
+## Commands
+
+```bash
+go build .
+DEPLOY_ENV=dev DOCKER_IMAGE=ghcr.io/bh-an/ec2-go-service:latest cdk synth
+```
+
+That deploys the same EC2 + Docker + Nginx service shape as the Terraform path, but with CDK as the primary consumer interface.

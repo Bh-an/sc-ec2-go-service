@@ -5,15 +5,15 @@
 It owns:
 
 - the Go application source under `app/`
-- the Docker image build for that application
+- the Docker image build and GHCR publish flow for that application
 - a Terraform consumer path under `infra/terraform/`
 - a Go CDK consumer path under `infra/cdk/`
 
 It does not own the shared infrastructure modules themselves.
 
 - Terraform modules and the baked-host AMI pipeline live in `https://github.com/Bh-an/sc-tf-ec2-service-module`
-- CDK constructs live in `https://github.com/Bh-an/cdk-ec2-service-module`
-- Go CDK bindings live in `https://github.com/Bh-an/cdk-ec2-service-module-go`
+- CDK constructs live in `https://github.com/Bh-an/sc-cdk-ec2-service-module`
+- Go CDK bindings live in `https://github.com/Bh-an/sc-cdk-ec2-service-module-go`
 
 ## Repo Layout
 
@@ -29,29 +29,72 @@ infra/cdk/       Go CDK consumer stack using shared CDK bindings
 cd app
 go test ./...
 go build ./cmd/server
-docker build -t ec2-go-service:latest .
+docker build -t ghcr.io/bh-an/ec2-go-service:latest .
 ```
+
+## Container Registry Contract
+
+- Registry: `ghcr.io/bh-an/ec2-go-service`
+- Publish workflow: `.github/workflows/publish-image.yml`
+- Preferred deploy reference: immutable digest, e.g. `ghcr.io/bh-an/ec2-go-service@sha256:<digest>`
+- Current deployability assumption: the GHCR package is public so the EC2 host can `docker pull` it during bootstrap without extra registry credentials
+
+The publish workflow pushes immutable `sha-<commitsha>` tags and stores the final digest reference as an artifact.
+
+## CDK Consumer Path
+
+The Go CDK path is the primary deployment path. It consumes the published Go bindings from `github.com/Bh-an/cdk-ec2-service-module-go/cdkec2servicemodule` at `v0.1.0`.
+
+```bash
+cd infra/cdk
+go build .
+DEPLOY_ENV=dev DOCKER_IMAGE=ghcr.io/bh-an/ec2-go-service:latest cdk synth
+```
+
+Environment config lives under `infra/cdk/environments/`:
+
+- `dev.json`
+- `stage.json`
+
+Runtime deploy inputs:
+
+- `DEPLOY_ENV=dev|stage`
+- `DOCKER_IMAGE=ghcr.io/bh-an/ec2-go-service@sha256:<digest>`
 
 ## Terraform Consumer Path
 
-The Terraform path consumes the reusable modules in `sc-tf-ec2-service-module` using Git module sources pinned to `v0.1.0`.
+The Terraform path remains an aligned secondary path. It consumes the reusable modules in `https://github.com/Bh-an/sc-tf-ec2-service-module` using Git module sources pinned to `v0.1.0`.
 
 ```bash
 cd infra/terraform
 terraform init
 terraform validate
-terraform apply
+terraform apply \
+  -var-file=environments/dev.tfvars \
+  -var="docker_image=ghcr.io/bh-an/ec2-go-service:latest"
 ```
 
-## CDK Consumer Path
+Environment variable files live under `infra/terraform/environments/`:
 
-The Go CDK path consumes the published Go bindings from `github.com/Bh-an/cdk-ec2-service-module-go/cdkec2servicemodule` at `v0.1.0`.
+- `dev.tfvars`
+- `stage.tfvars`
 
-```bash
-cd infra/cdk
-go build .
-cdk synth
-```
+## GitHub Actions Flow
+
+Primary path:
+
+1. `publish-image`
+2. `deploy-cdk`
+
+Aligned secondary path:
+
+1. `publish-image`
+2. `deploy-terraform`
+
+Both deploy workflows use GitHub Environments named `dev` and `stage`, with:
+
+- `vars.AWS_REGION`
+- `secrets.AWS_ROLE_TO_ASSUME`
 
 ## Release Line
 
