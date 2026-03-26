@@ -1,5 +1,5 @@
 module "service" {
-  source = "git::ssh://git@github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/service-host?ref=dev"
+  source = "git::ssh://git@github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/service-host?ref=v0.3.0"
 
   platform             = var.platform
   environment          = var.environment

@@ -45,7 +45,7 @@ The publish workflow pushes immutable `sha-<commitsha>` tags and stores the fina
 
 ## CDK Consumer Path
 
-The Go CDK path is the primary deployment path. It consumes the published Go bindings from `github.com/Bh-an/sc-cdk-service-host-module-go/cdkservicehostmodule` on the `v0.3.0` release line.
+The Go CDK path is the primary deployment path. It consumes the published Go bindings from `github.com/Bh-an/sc-cdk-service-host-module-go/cdkservicehostmodule` on the live `v0.3.0` release line.
 
 ```bash
 cd infra/cdk
@@ -72,7 +72,7 @@ Private shared-module access requirements:
 
 ## Terraform Consumer Path
 
-The Terraform path remains an aligned secondary path. During `dev` integration it consumes the reusable modules in `https://github.com/Bh-an/sc-tf-service-host-module` from the shared `dev` branch over SSH. Once `v0.3.0` is cut, those module sources should be repinned to the release tag.
+The Terraform path remains an aligned secondary path. It consumes the reusable modules in `https://github.com/Bh-an/sc-tf-service-host-module` from the published `v0.3.0` release over SSH.
 
 ```bash
 cd infra/terraform
@@ -107,7 +107,7 @@ Both deploy workflows use GitHub Environments named `dev` and `stage`, with:
 
 ## Release Line
 
-This refactored split model now tracks the shared `v0.3.0` release-prep line on `dev`.
+This refactored split model now tracks the shared `v0.3.0` release line.
 
 ## Contributing
 

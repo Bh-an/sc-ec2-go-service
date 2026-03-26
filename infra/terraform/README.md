@@ -2,10 +2,10 @@
 
 This directory is the Terraform consumer path for the service repo.
 
-It composes the shared modules from the shared `dev` branch during the `v0.3.0` integration cycle:
+It composes the shared modules from the published `v0.3.0` release:
 
-- `git::ssh://git@github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/network?ref=dev`
-- `git::ssh://git@github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/service-host?ref=dev`
+- `git::ssh://git@github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/network?ref=v0.3.0`
+- `git::ssh://git@github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/service-host?ref=v0.3.0`
 
 This is the aligned secondary deployment path for the service repo.
 
@@ -30,7 +30,5 @@ terraform apply \
   -var-file=environments/dev.tfvars \
   -var="docker_image=ghcr.io/bh-an/ec2-go-service:latest"
 ```
-
-Once `v0.3.0` is cut on the shared Terraform repo, these module sources should be repinned from `ref=dev` to `ref=v0.3.0`.
 
 That keeps the service repo focused on environment-specific wiring while the shared Terraform repo owns the reusable host and network logic.
