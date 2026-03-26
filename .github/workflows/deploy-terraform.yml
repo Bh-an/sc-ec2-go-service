@@ -25,7 +25,7 @@ jobs:
       group: terraform-${{ inputs.environment }}
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Ensure shared repos token is configured
         run: test -n "${{ secrets.SHARED_REPOS_TOKEN }}"
