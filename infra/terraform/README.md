@@ -4,8 +4,8 @@ This directory is the Terraform consumer path for the service repo.
 
 It composes the shared modules from the published `v0.3.0` release:
 
-- `git::ssh://git@github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/network?ref=v0.3.0`
-- `git::ssh://git@github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/service-host?ref=v0.3.0`
+- `git::https://github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/network?ref=v0.3.0`
+- `git::https://github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/service-host?ref=v0.3.0`
 
 This is the aligned secondary deployment path for the service repo.
 
@@ -22,8 +22,8 @@ Environment defaults live under `environments/`:
 ## Commands
 
 ```bash
-eval "$(ssh-agent -s)"
-ssh-add ~/.ssh/<shared-repos-read-key>
+export TOKEN=<github-token-with-read-access>
+git config --global url."https://x-access-token:${TOKEN}@github.com/".insteadOf https://github.com/
 terraform init
 terraform validate
 terraform apply \

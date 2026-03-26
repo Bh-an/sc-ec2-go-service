@@ -15,7 +15,7 @@ It does not own the shared infrastructure modules themselves.
 - CDK constructs live in `https://github.com/Bh-an/sc-cdk-service-host-module`
 - Go CDK bindings live in `https://github.com/Bh-an/sc-cdk-service-host-module-go`
 
-Shared module access is SSH-based. Local and CI consumers should load an SSH key with read access to the shared repos.
+Shared module access in GitHub Actions is token-based. Local git usage on this machine can remain SSH-based.
 
 ## Repo Layout
 
@@ -63,16 +63,16 @@ Runtime deploy inputs:
 - `DEPLOY_ENV=dev|stage`
 - `DOCKER_IMAGE=ghcr.io/bh-an/ec2-go-service@sha256:<digest>`
 
-Private shared-module access requirements:
+Private shared-module access requirements in CI:
 
 - `GOPRIVATE=github.com/Bh-an/*`
 - `GONOSUMDB=github.com/Bh-an/*`
-- git rewrite from `https://github.com/` to `ssh://git@github.com/`
-- GitHub Actions secret: `SHARED_REPOS_SSH_KEY`
+- git rewrite from `https://github.com/` to `https://x-access-token:<token>@github.com/`
+- GitHub Actions secret: `SHARED_REPOS_TOKEN`
 
 ## Terraform Consumer Path
 
-The Terraform path remains an aligned secondary path. It consumes the reusable modules in `https://github.com/Bh-an/sc-tf-service-host-module` from the published `v0.3.0` release over SSH.
+The Terraform path remains an aligned secondary path. It consumes the reusable modules in `https://github.com/Bh-an/sc-tf-service-host-module` from the published `v0.3.0` release over HTTPS.
 
 ```bash
 cd infra/terraform
