@@ -10,7 +10,7 @@ on:
         options: [dev, stage]
       docker_image:
         description: Full image ref (prefer digest), e.g. ghcr.io/bh-an/ec2-go-service@sha256:...
-        required: true
+        required: false
         type: string
 
 env:
@@ -28,7 +28,6 @@ jobs:
       group: cdk-${{ inputs.environment }}
       cancel-in-progress: false
     env:
-      DOCKER_IMAGE: ${{ inputs.docker_image }}
       DEPLOY_ENV: ${{ inputs.environment }}
     steps:
       - uses: actions/checkout@v6
@@ -50,14 +49,13 @@ jobs:
       - name: Install CDK CLI
         run: npm install -g aws-cdk@2
 
-      - name: Build Go CDK app
-        working-directory: infra/cdk
-        run: go build .
-
-      - name: CDK synth
-        working-directory: infra/cdk
-        run: cdk synth
+      - name: Resolve image reference
+        id: image
+        run: |
+          IMAGE_REF="$(./scripts/resolve-image.sh "${{ inputs.docker_image }}")"
+          echo "image_ref=$IMAGE_REF" >> "$GITHUB_OUTPUT"
 
       - name: Deploy stack
-        working-directory: infra/cdk
-        run: cdk deploy --require-approval never
+        env:
+          DOCKER_IMAGE: ${{ steps.image.outputs.image_ref }}
+        run: ./scripts/deploy-cdk.sh "${{ inputs.environment }}" "${{ steps.image.outputs.image_ref }}"

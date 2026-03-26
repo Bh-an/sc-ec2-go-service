@@ -67,7 +67,7 @@ variable "ami_ssm_parameter_name" {
 variable "root_volume_size_gib" {
   description = "Root EBS volume size in GiB."
   type        = number
-  default     = 20
+  default     = 30
 }
 
 variable "data_volume_size_gib" {

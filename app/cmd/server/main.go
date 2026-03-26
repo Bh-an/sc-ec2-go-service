@@ -19,13 +19,19 @@ func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
 
-	cfg, err := config.Load("config.json")
+	configPath := os.Getenv("CONFIG_PATH")
+	if configPath == "" {
+		configPath = "config.json"
+	}
+
+	cfg, err := config.Load(configPath)
 	if err != nil {
 		slog.Error("load config", "error", err)
 		os.Exit(1)
 	}
 
 	mux := http.NewServeMux()
+	mux.HandleFunc("GET /", handlers.RootHandler)
 	mux.HandleFunc("GET /api/v1", handlers.APIHandler)
 	mux.HandleFunc("GET /health", handlers.HealthHandler)
 

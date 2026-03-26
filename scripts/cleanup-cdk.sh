@@ -19,7 +19,7 @@ fi
 note "Destroying CDK stack for ${DEPLOY_ENV_INPUT}"
 (
   cd "$ROOT_DIR/infra/cdk"
-  DEPLOY_ENV="$DEPLOY_ENV_INPUT" DOCKER_IMAGE="${DOCKER_IMAGE:-ghcr.io/bh-an/ec2-go-service:latest}" npx -y aws-cdk@2 destroy --force
+  DEPLOY_ENV="$DEPLOY_ENV_INPUT" DOCKER_IMAGE="${DOCKER_IMAGE:-${SERVICE_IMAGE_NAME}:latest}" npx -y aws-cdk@2 destroy --force
 )
 
 if [[ "$CLEANUP_MODE" == "full" ]]; then

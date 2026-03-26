@@ -4,6 +4,9 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 readonly ROOT_DIR
 
+SERVICE_IMAGE_NAME="${IMAGE_NAME:-ghcr.io/bh-an/ec2-go-service}"
+readonly SERVICE_IMAGE_NAME
+
 note() {
   printf '[info] %s\n' "$*"
 }
@@ -19,6 +22,10 @@ fail() {
 
 require_tool() {
   command -v "$1" >/dev/null 2>&1 || fail "missing required tool: $1"
+}
+
+require_dir() {
+  [[ -d "$1" ]] || fail "missing required directory: $1"
 }
 
 require_file() {
@@ -66,9 +73,23 @@ check_preferred_node() {
   fi
 }
 
-require_aws_env() {
+current_region() {
   local region="${AWS_REGION:-${AWS_DEFAULT_REGION:-}}"
   [[ -n "$region" ]] || fail "set AWS_REGION or AWS_DEFAULT_REGION"
+  printf '%s' "$region"
+}
+
+require_aws_env() {
+  local region
+  region="$(current_region)"
+  export AWS_REGION="$region"
+  export AWS_DEFAULT_REGION="$region"
+}
+
+resolve_account_id() {
+  require_tool aws
+  require_aws_env
+  aws sts get-caller-identity --query Account --output text
 }
 
 require_cleanup_mode() {
@@ -81,6 +102,18 @@ require_cleanup_mode() {
   esac
 }
 
+resolve_backend_mode() {
+  local mode="${TF_BACKEND:-${BACKEND:-s3}}"
+  case "$mode" in
+    s3|local)
+      ;;
+    *)
+      fail "terraform backend must be one of: s3, local"
+      ;;
+  esac
+  printf '%s' "$mode"
+}
+
 require_full_cleanup_confirmation() {
   local environment_name="$1"
   local confirmation="${CONFIRM:-}"
@@ -90,6 +123,293 @@ require_full_cleanup_confirmation() {
 service_ami_parameter_name() {
   local environment_name="$1"
   printf '/sc/ec2-go-service/%s/ami-id' "$environment_name"
+}
+
+shared_tf_repo_dir() {
+  local repo_dir="${TF_MODULE_REPO_DIR:-$ROOT_DIR/../sc-tf-service-host-module}"
+  [[ -d "$repo_dir" ]] || fail "shared Terraform repo not found at ${repo_dir}; set TF_MODULE_REPO_DIR if it lives elsewhere"
+  printf '%s' "$repo_dir"
+}
+
+shared_tf_packer_dir() {
+  printf '%s/packer' "$(shared_tf_repo_dir)"
+}
+
+service_image_manifest_headers() {
+  local image_ref="$1"
+  local image_name ref manifest_path initial_headers status auth_line realm service scope token
+
+  if [[ "$image_ref" == *"@"* ]]; then
+    image_name="${image_ref%@*}"
+    ref="${image_ref#*@}"
+  elif [[ "$image_ref" == *":"* ]]; then
+    image_name="${image_ref%:*}"
+    ref="${image_ref##*:}"
+  else
+    fail "image reference must be a tag or digest: ${image_ref}"
+  fi
+
+  [[ "$image_name" == ghcr.io/* ]] || fail "automatic image verification only supports ghcr.io refs: ${image_ref}"
+  manifest_path="${image_name#ghcr.io/}"
+
+  initial_headers="$(
+    curl -sSI \
+      -H 'Accept: application/vnd.oci.image.index.v1+json, application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json, application/vnd.docker.distribution.manifest.list.v2+json' \
+      "https://ghcr.io/v2/${manifest_path}/manifests/${ref}"
+  )"
+  status="$(printf '%s\n' "$initial_headers" | awk 'NR==1 {print $2}')"
+
+  case "$status" in
+    200)
+      printf '%s\n' "$initial_headers"
+      return 0
+      ;;
+    401)
+      auth_line="$(printf '%s\n' "$initial_headers" | tr -d '\r' | awk 'tolower($1)=="www-authenticate:" {sub(/^[^ ]+ /, ""); print}')"
+      [[ -n "$auth_line" ]] || fail "unable to negotiate GHCR auth challenge for ${image_ref}"
+
+      realm="$(printf '%s\n' "$auth_line" | sed -n 's/.*realm="\([^"]*\)".*/\1/p')"
+      service="$(printf '%s\n' "$auth_line" | sed -n 's/.*service="\([^"]*\)".*/\1/p')"
+      scope="$(printf '%s\n' "$auth_line" | sed -n 's/.*scope="\([^"]*\)".*/\1/p')"
+      [[ -n "$realm" && -n "$service" && -n "$scope" ]] || fail "unable to parse GHCR auth challenge for ${image_ref}"
+
+      token="$(
+        curl -fsSL "${realm}?service=${service}&scope=${scope}" |
+          sed -n 's/.*"token":"\([^"]*\)".*/\1/p'
+      )"
+      [[ -n "$token" ]] || fail "unable to retrieve GHCR bearer token for ${image_ref}"
+
+      curl -fsSI \
+        -H "Authorization: Bearer ${token}" \
+        -H 'Accept: application/vnd.oci.image.index.v1+json, application/vnd.oci.image.manifest.v1+json, application/vnd.docker.distribution.manifest.v2+json, application/vnd.docker.distribution.manifest.list.v2+json' \
+        "https://ghcr.io/v2/${manifest_path}/manifests/${ref}"
+      ;;
+    404)
+      fail "image manifest not found: ${image_ref}"
+      ;;
+    *)
+      fail "unexpected GHCR response ${status} while resolving ${image_ref}"
+      ;;
+  esac
+}
+
+service_image_digest_from_ref() {
+  local image_ref="$1"
+  local digest
+  digest="$(
+    service_image_manifest_headers "$image_ref" |
+      tr -d '\r' |
+      awk 'tolower($1)=="docker-content-digest:" {print $2}'
+  )"
+  [[ -n "$digest" ]] || fail "unable to resolve digest for image: ${image_ref}"
+  printf '%s' "$digest"
+}
+
+verify_service_image_ref() {
+  local image_ref="$1"
+  service_image_manifest_headers "$image_ref" >/dev/null
+}
+
+resolve_default_service_image() {
+  local latest_ref="${SERVICE_IMAGE_NAME}:latest"
+  local digest
+
+  digest="$(service_image_digest_from_ref "$latest_ref")" || fail "unable to resolve default deploy image from ${latest_ref}; publish a latest tag or pass IMAGE explicitly"
+  printf '%s@%s' "$SERVICE_IMAGE_NAME" "$digest"
+}
+
+verify_generic_image_ref() {
+  local image_ref="$1"
+  require_tool docker
+  docker manifest inspect "$image_ref" >/dev/null 2>&1 || fail "image does not exist or is not readable: ${image_ref}"
+}
+
+resolve_deploy_image() {
+  local requested_ref="${1:-}"
+  local resolved_ref digest
+
+  if [[ -z "$requested_ref" ]]; then
+    resolved_ref="$(resolve_default_service_image)"
+    note "Using latest published service image: ${resolved_ref}"
+    printf '%s' "$resolved_ref"
+    return 0
+  fi
+
+  if [[ "$requested_ref" == "${SERVICE_IMAGE_NAME}"* ]]; then
+    verify_service_image_ref "$requested_ref"
+    if [[ "$requested_ref" == *"@"* ]]; then
+      printf '%s' "$requested_ref"
+      return 0
+    fi
+
+    digest="$(service_image_digest_from_ref "$requested_ref")"
+    printf '%s@%s' "$SERVICE_IMAGE_NAME" "$digest"
+    return 0
+  fi
+
+  verify_generic_image_ref "$requested_ref"
+  printf '%s' "$requested_ref"
+}
+
+login_ghcr() {
+  local user token
+  require_tool docker
+  user="$(resolve_github_user)"
+  token="$(resolve_ghcr_token)"
+  printf '%s' "$token" | docker login ghcr.io -u "$user" --password-stdin >/dev/null
+}
+
+resolve_tfstate_bucket_name() {
+  local account_id region
+  account_id="$(resolve_account_id)"
+  region="$(current_region)"
+  printf 'sc-ec2-go-service-tfstate-%s-%s' "$account_id" "$region"
+}
+
+resolve_tfstate_key() {
+  local environment_name="$1"
+  printf '%s/terraform.tfstate' "$environment_name"
+}
+
+ensure_tf_backend_bucket() {
+  local bucket_name region
+  bucket_name="$(resolve_tfstate_bucket_name)"
+  region="$(current_region)"
+
+  if aws s3api head-bucket --bucket "$bucket_name" >/dev/null 2>&1; then
+    note "Terraform state bucket already exists: ${bucket_name}"
+  else
+    note "Creating Terraform state bucket ${bucket_name}"
+    if [[ "$region" == "us-east-1" ]]; then
+      aws s3api create-bucket --bucket "$bucket_name" >/dev/null
+    else
+      aws s3api create-bucket \
+        --bucket "$bucket_name" \
+        --create-bucket-configuration "LocationConstraint=${region}" >/dev/null
+    fi
+  fi
+
+  aws s3api put-public-access-block \
+    --bucket "$bucket_name" \
+    --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true >/dev/null
+  aws s3api put-bucket-versioning \
+    --bucket "$bucket_name" \
+    --versioning-configuration Status=Enabled >/dev/null
+  aws s3api put-bucket-encryption \
+    --bucket "$bucket_name" \
+    --server-side-encryption-configuration '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}' >/dev/null
+}
+
+write_tf_backend_config() {
+  local environment_name="$1"
+  local backend_config_path="${TMPDIR:-/tmp}/sc-ec2-go-service-backend-${environment_name}.hcl"
+  local bucket_name region key
+
+  bucket_name="$(resolve_tfstate_bucket_name)"
+  region="$(current_region)"
+  key="$(resolve_tfstate_key "$environment_name")"
+
+  cat >"$backend_config_path" <<EOF
+bucket       = "${bucket_name}"
+key          = "${key}"
+region       = "${region}"
+encrypt      = true
+use_lockfile = true
+EOF
+
+  printf '%s' "$backend_config_path"
+}
+
+terraform_init_for_mode() {
+  local environment_name="$1"
+  local backend_mode="${2:-$(resolve_backend_mode)}"
+
+  case "$backend_mode" in
+    s3)
+      local backend_config
+      ensure_tf_backend_bucket
+      backend_config="$(write_tf_backend_config "$environment_name")"
+      run_in_repo infra/terraform terraform init -reconfigure -backend-config="$backend_config"
+      ;;
+    local)
+      run_in_repo infra/terraform terraform init -backend=false
+      ;;
+  esac
+}
+
+validate_s3_backend_ready() {
+  local bucket_name
+  bucket_name="$(resolve_tfstate_bucket_name)"
+  aws s3api head-bucket --bucket "$bucket_name" >/dev/null 2>&1 || fail "terraform state bucket is missing: ${bucket_name}; run bootstrap backend"
+}
+
+cdk_bootstrap_stack_name() {
+  printf 'CDKToolkit'
+}
+
+cdk_bootstrap_missing() {
+  local region stack_name
+  region="$(current_region)"
+  stack_name="$(cdk_bootstrap_stack_name)"
+  ! aws cloudformation describe-stacks --region "$region" --stack-name "$stack_name" >/dev/null 2>&1
+}
+
+ensure_cdk_bootstrap() {
+  local account_id region
+  if ! cdk_bootstrap_missing; then
+    note "CDK bootstrap stack is present"
+    return 0
+  fi
+
+  require_tool npx
+  account_id="$(resolve_account_id)"
+  region="$(current_region)"
+  note "Bootstrapping CDK toolkit in ${account_id}/${region}"
+  run_in_repo infra/cdk npx -y aws-cdk@2 bootstrap "aws://${account_id}/${region}"
+}
+
+warn_if_cdk_bootstrap_missing() {
+  if cdk_bootstrap_missing; then
+    warn "CDKToolkit is not bootstrapped in $(resolve_account_id)/$(current_region); run bootstrap cdk before deploying"
+  fi
+}
+
+comma_list_to_hcl_array() {
+  local csv="$1"
+  local result="" item
+  IFS=',' read -ra parts <<<"$csv"
+  for item in "${parts[@]}"; do
+    item="$(printf '%s' "$item" | xargs)"
+    [[ -n "$item" ]] || continue
+    if [[ -n "$result" ]]; then
+      result+=", "
+    fi
+    result+="\"${item}\""
+  done
+  printf '[%s]' "$result"
+}
+
+write_packer_var_file() {
+  local environment_name="$1"
+  local region="${2:-$(current_region)}"
+  local ami_regions_csv="${AMI_REGIONS:-}"
+  local ami_name_prefix="${AMI_NAME_PREFIX:-ec2-docker-host}"
+  local parameter_name="${AMI_SSM_PARAMETER_NAME:-$(service_ami_parameter_name "$environment_name")}"
+  local var_file_path="${TMPDIR:-/tmp}/sc-ec2-go-service-packer-${environment_name}.pkrvars.hcl"
+  local ami_regions_hcl="[]"
+
+  if [[ -n "$ami_regions_csv" ]]; then
+    ami_regions_hcl="$(comma_list_to_hcl_array "$ami_regions_csv")"
+  fi
+
+  cat >"$var_file_path" <<EOF
+region                 = "${region}"
+ami_name_prefix        = "${ami_name_prefix}"
+ami_regions            = ${ami_regions_hcl}
+ami_ssm_parameter_name = "${parameter_name}"
+EOF
+
+  printf '%s' "$var_file_path"
 }
 
 delete_service_ami_parameter() {
@@ -118,11 +438,12 @@ run_in_repo() {
 print_next_steps() {
   cat <<'EOF'
 Next steps:
-  1. ./scripts/validate.sh
-  2. ./scripts/publish-image.sh
-  3. ./scripts/deploy-cdk.sh dev ghcr.io/bh-an/ec2-go-service:<tag>
+  1. ./scripts/validate.sh all
+  2. ./scripts/resolve-image.sh
+  3. ./scripts/deploy-cdk.sh dev
      or
-     ./scripts/deploy-terraform.sh dev ghcr.io/bh-an/ec2-go-service:<tag>
+     ./scripts/build-ami.sh dev
+     ./scripts/deploy-terraform.sh dev
   4. ./scripts/cleanup-cdk.sh dev infra
      or
      ./scripts/cleanup-terraform.sh dev infra

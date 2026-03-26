@@ -18,8 +18,8 @@ if [[ "$CLEANUP_MODE" == "full" ]]; then
 fi
 
 note "Destroying Terraform stack for ${DEPLOY_ENV_INPUT}"
-run_in_repo infra/terraform terraform init
-run_in_repo infra/terraform terraform destroy -auto-approve -var-file="$TFVARS_PATH" -var="docker_image=${DOCKER_IMAGE:-ghcr.io/bh-an/ec2-go-service:latest}"
+terraform_init_for_mode "$DEPLOY_ENV_INPUT"
+run_in_repo infra/terraform terraform destroy -auto-approve -var-file="$TFVARS_PATH" -var="docker_image=${DOCKER_IMAGE:-${SERVICE_IMAGE_NAME}:latest}"
 
 if [[ "$CLEANUP_MODE" == "full" ]]; then
   delete_service_ami_parameter "$DEPLOY_ENV_INPUT"

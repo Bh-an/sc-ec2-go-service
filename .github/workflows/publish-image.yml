@@ -38,6 +38,7 @@ jobs:
           images: ${{ env.IMAGE_NAME }}
           tags: |
             type=sha,format=long,prefix=sha-,suffix=
+            type=raw,value=latest
 
       - name: Build and push image
         id: build
