@@ -4,8 +4,8 @@ This directory is the Terraform consumer path for the service repo.
 
 It composes the shared modules from:
 
-- `https://github.com/Bh-an/sc-tf-ec2-service-module.git//terraform/modules/network?ref=v0.1.1`
-- `https://github.com/Bh-an/sc-tf-ec2-service-module.git//terraform/modules/ec2-docker-service?ref=v0.1.1`
+- `https://github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/network?ref=v0.2.0`
+- `https://github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/service-host?ref=v0.2.0`
 
 This is the aligned secondary deployment path for the service repo.
 

@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	cdkec2servicemodule "github.com/Bh-an/sc-cdk-ec2-service-module-go/cdkec2servicemodule"
+	cdkservicehostmodule "github.com/Bh-an/sc-cdk-service-host-module-go/cdkservicehostmodule"
 	awscdk "github.com/aws/aws-cdk-go/awscdk/v2"
 	awsec2 "github.com/aws/aws-cdk-go/awscdk/v2/awsec2"
 	_jsii_ "github.com/aws/jsii-runtime-go"
@@ -113,9 +113,9 @@ func newServiceStack(app awscdk.App, cfg *environmentConfig, props *serviceStack
 		},
 	})
 
-	service := cdkec2servicemodule.NewEc2DockerService(stack, _jsii_.String("Service"), &cdkec2servicemodule.Ec2DockerServiceProps{
+	service := cdkservicehostmodule.NewEc2DockerService(stack, _jsii_.String("Service"), &cdkservicehostmodule.Ec2DockerServiceProps{
 		DockerImage: props.dockerImage,
-		Infrastructure: &cdkec2servicemodule.ServiceInfrastructureProps{
+		Infrastructure: &cdkservicehostmodule.ServiceInfrastructureProps{
 			Vpc: vpc,
 			SubnetSelection: &awsec2.SubnetSelection{
 				SubnetType: toSubnetType(cfg.SubnetSelectionType),

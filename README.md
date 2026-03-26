@@ -11,9 +11,9 @@ It owns:
 
 It does not own the shared infrastructure modules themselves.
 
-- Terraform modules and the baked-host AMI pipeline live in `https://github.com/Bh-an/sc-tf-ec2-service-module`
-- CDK constructs live in `https://github.com/Bh-an/sc-cdk-ec2-service-module`
-- Go CDK bindings live in `https://github.com/Bh-an/sc-cdk-ec2-service-module-go`
+- Terraform modules and the baked-host AMI pipeline live in `https://github.com/Bh-an/sc-tf-service-host-module`
+- CDK constructs live in `https://github.com/Bh-an/sc-cdk-service-host-module`
+- Go CDK bindings live in `https://github.com/Bh-an/sc-cdk-service-host-module-go`
 
 ## Repo Layout
 
@@ -43,7 +43,7 @@ The publish workflow pushes immutable `sha-<commitsha>` tags and stores the fina
 
 ## CDK Consumer Path
 
-The Go CDK path is the primary deployment path. It consumes the published Go bindings from `github.com/Bh-an/sc-cdk-ec2-service-module-go/cdkec2servicemodule` on the `v0.1.2` release line.
+The Go CDK path is the primary deployment path. It consumes the published Go bindings from `github.com/Bh-an/sc-cdk-service-host-module-go/cdkservicehostmodule` on the `v0.2.0` release line.
 
 ```bash
 cd infra/cdk
@@ -63,7 +63,7 @@ Runtime deploy inputs:
 
 ## Terraform Consumer Path
 
-The Terraform path remains an aligned secondary path. It consumes the reusable modules in `https://github.com/Bh-an/sc-tf-ec2-service-module` using Git module sources pinned to `v0.1.1`.
+The Terraform path remains an aligned secondary path. It consumes the reusable modules in `https://github.com/Bh-an/sc-tf-service-host-module` using Git module sources pinned to `v0.2.0`.
 
 ```bash
 cd infra/terraform
@@ -98,7 +98,7 @@ Both deploy workflows use GitHub Environments named `dev` and `stage`, with:
 
 ## Release Line
 
-This refactored split model now tracks the shared `v0.1.2` CDK release line and the aligned Terraform `v0.1.1` release line while `dev` is in flight.
+This refactored split model now tracks the shared `v0.2.0` release line while `dev` is in flight.
 
 ## Contributing
 

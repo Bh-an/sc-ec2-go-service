@@ -4,7 +4,7 @@ This directory is the Go CDK consumer path for the service repo.
 
 It uses the published Go bindings from:
 
-- `github.com/Bh-an/sc-cdk-ec2-service-module-go/cdkec2servicemodule v0.1.2`
+- `github.com/Bh-an/sc-cdk-service-host-module-go/cdkservicehostmodule v0.2.0`
 
 This is the primary deployment path for the service repo.
 
