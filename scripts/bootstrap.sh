@@ -11,7 +11,7 @@ done
 check_preferred_node
 configure_private_module_env
 
-note "Checking access to private shared repos"
+note "Checking access to published shared repos"
 git ls-remote https://github.com/Bh-an/sc-cdk-service-host-module-go.git HEAD >/dev/null
 git ls-remote https://github.com/Bh-an/sc-tf-service-host-module.git HEAD >/dev/null
 

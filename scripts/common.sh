@@ -25,14 +25,8 @@ require_file() {
   [[ -f "$1" ]] || fail "missing required file: $1"
 }
 
-resolve_shared_repos_token() {
-  local token="${GITHUB_TOKEN:-${SHARED_REPOS_TOKEN:-}}"
-  [[ -n "$token" ]] || fail "set GITHUB_TOKEN for local use or SHARED_REPOS_TOKEN for CI"
-  printf '%s' "$token"
-}
-
 resolve_ghcr_token() {
-  local token="${GHCR_TOKEN:-${GITHUB_TOKEN:-${SHARED_REPOS_TOKEN:-}}}"
+  local token="${GHCR_TOKEN:-${GITHUB_TOKEN:-}}"
   if [[ -z "$token" ]] && command -v gh >/dev/null 2>&1; then
     token="$(gh auth token 2>/dev/null || true)"
   fi
@@ -50,13 +44,7 @@ resolve_github_user() {
 }
 
 configure_private_module_env() {
-  local token
-  token="$(resolve_shared_repos_token)"
-  export GOPRIVATE="github.com/Bh-an/*"
-  export GONOSUMDB="github.com/Bh-an/*"
-  export GIT_CONFIG_COUNT=1
-  export GIT_CONFIG_KEY_0="url.https://x-access-token:${token}@github.com/.insteadOf"
-  export GIT_CONFIG_VALUE_0="https://github.com/"
+  return 0
 }
 
 check_preferred_node() {
