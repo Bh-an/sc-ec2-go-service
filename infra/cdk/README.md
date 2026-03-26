@@ -13,6 +13,13 @@ This is the primary deployment path for the service repo.
 - `DEPLOY_ENV=dev|stage`
 - `DOCKER_IMAGE=ghcr.io/bh-an/ec2-go-service@sha256:<digest>`
 
+Because the shared Go wrapper repo is private, local and CI builds should use:
+
+- `GOPRIVATE=github.com/Bh-an/*`
+- `GONOSUMDB=github.com/Bh-an/*`
+- git URL rewrite from `https://github.com/` to `ssh://git@github.com/`
+- an SSH key with read access to the shared repos
+
 Environment defaults live under `environments/`:
 
 - `dev.json`
@@ -21,6 +28,9 @@ Environment defaults live under `environments/`:
 ## Commands
 
 ```bash
+export GOPRIVATE=github.com/Bh-an/*
+export GONOSUMDB=github.com/Bh-an/*
+git config --global url."ssh://git@github.com/".insteadOf https://github.com/
 go build .
 DEPLOY_ENV=dev DOCKER_IMAGE=ghcr.io/bh-an/ec2-go-service:latest cdk synth
 ```
