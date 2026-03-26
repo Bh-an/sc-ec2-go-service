@@ -58,6 +58,12 @@ variable "ami_name_prefix" {
   default     = "ec2-docker-host"
 }
 
+variable "ami_ssm_parameter_name" {
+  description = "SSM parameter name that stores the approved service host AMI ID."
+  type        = string
+  default     = null
+}
+
 variable "root_volume_size_gib" {
   description = "Root EBS volume size in GiB."
   type        = number
