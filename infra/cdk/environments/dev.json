@@ -1,0 +1,20 @@
+{
+  "stackName": "Ec2GoServiceDevStack",
+  "region": "ap-south-1",
+  "platform": "platform",
+  "environment": "dev",
+  "serviceName": "ec2-go-service",
+  "sharedTags": {
+    "ManagedBy": "CDK",
+    "ServiceRepo": "sc-ec2-go-service"
+  },
+  "vpc": {
+    "cidr": "10.30.0.0/16",
+    "maxAzs": 1,
+    "natGateways": 0,
+    "subnetName": "Public",
+    "subnetType": "PUBLIC",
+    "subnetCidrMask": 24
+  },
+  "subnetSelectionType": "PUBLIC"
+}

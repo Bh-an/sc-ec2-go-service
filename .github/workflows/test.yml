@@ -25,12 +25,22 @@ jobs:
         run: go build ./cmd/server
 
       - name: Build application image
-        run: docker build -t ec2-go-service:test ./app
+        run: docker build -t ghcr.io/bh-an/ec2-go-service:test ./app
 
   terraform:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Load SSH key for shared repos
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SHARED_REPOS_SSH_KEY }}
+
+      - name: Trust GitHub SSH host key
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
 
       - uses: hashicorp/setup-terraform@v3
         with:
@@ -44,10 +54,32 @@ jobs:
         working-directory: infra/terraform
         run: terraform validate
 
+      - name: Verify environment files exist
+        working-directory: infra/terraform
+        run: |
+          test -f environments/dev.tfvars
+          test -f environments/stage.tfvars
+
   cdk:
     runs-on: ubuntu-latest
+    env:
+      GOPRIVATE: github.com/Bh-an/*
+      GONOSUMDB: github.com/Bh-an/*
     steps:
       - uses: actions/checkout@v4
+
+      - name: Load SSH key for shared repos
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SHARED_REPOS_SSH_KEY }}
+
+      - name: Trust GitHub SSH host key
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+      - name: Rewrite GitHub module fetches to SSH
+        run: git config --global url."ssh://git@github.com/".insteadOf https://github.com/
 
       - uses: actions/setup-go@v5
         with:
@@ -64,8 +96,16 @@ jobs:
         working-directory: infra/cdk
         run: go build .
 
-      - name: CDK synth
+      - name: CDK synth (dev)
         working-directory: infra/cdk
         env:
-          DOCKER_IMAGE: ec2-go-service:test
+          DEPLOY_ENV: dev
+          DOCKER_IMAGE: ghcr.io/bh-an/ec2-go-service:test
+        run: cdk synth
+
+      - name: CDK synth (stage)
+        working-directory: infra/cdk
+        env:
+          DEPLOY_ENV: stage
+          DOCKER_IMAGE: ghcr.io/bh-an/ec2-go-service:test
         run: cdk synth
