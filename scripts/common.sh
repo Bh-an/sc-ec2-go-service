@@ -83,6 +83,41 @@ require_aws_env() {
   [[ -n "$region" ]] || fail "set AWS_REGION or AWS_DEFAULT_REGION"
 }
 
+require_cleanup_mode() {
+  case "$1" in
+    infra|full)
+      ;;
+    *)
+      fail "cleanup mode must be one of: infra, full"
+      ;;
+  esac
+}
+
+require_full_cleanup_confirmation() {
+  local environment_name="$1"
+  local confirmation="${CONFIRM:-}"
+  [[ "$confirmation" == "$environment_name" ]] || fail "set CONFIRM=${environment_name} to allow full cleanup"
+}
+
+service_ami_parameter_name() {
+  local environment_name="$1"
+  printf '/sc/ec2-go-service/%s/ami-id' "$environment_name"
+}
+
+delete_service_ami_parameter() {
+  local environment_name="$1"
+  local parameter_name="${AMI_SSM_PARAMETER_NAME:-$(service_ami_parameter_name "$environment_name")}"
+  require_tool aws
+  require_aws_env
+
+  if aws ssm get-parameter --name "$parameter_name" >/dev/null 2>&1; then
+    note "Deleting SSM parameter ${parameter_name}"
+    aws ssm delete-parameter --name "$parameter_name" >/dev/null
+  else
+    warn "SSM parameter not found, skipping delete: ${parameter_name}"
+  fi
+}
+
 run_in_repo() {
   local rel_dir="$1"
   shift
@@ -100,5 +135,8 @@ Next steps:
   3. ./scripts/deploy-cdk.sh dev ghcr.io/bh-an/ec2-go-service:<tag>
      or
      ./scripts/deploy-terraform.sh dev ghcr.io/bh-an/ec2-go-service:<tag>
+  4. ./scripts/cleanup-cdk.sh dev infra
+     or
+     ./scripts/cleanup-terraform.sh dev infra
 EOF
 }

@@ -1,6 +1,6 @@
 SHELL := /usr/bin/env bash
 
-.PHONY: bootstrap validate validate-app validate-cdk validate-terraform publish-image deploy-cdk deploy-terraform
+.PHONY: bootstrap validate validate-app validate-cdk validate-terraform publish-image deploy-cdk deploy-terraform cleanup-cdk cleanup-terraform
 
 bootstrap:
 	./scripts/bootstrap.sh
@@ -25,3 +25,9 @@ deploy-cdk:
 
 deploy-terraform:
 	./scripts/deploy-terraform.sh $(ENV) $(IMAGE)
+
+cleanup-cdk:
+	./scripts/cleanup-cdk.sh $(ENV) $(MODE)
+
+cleanup-terraform:
+	./scripts/cleanup-terraform.sh $(ENV) $(MODE)
