@@ -1,5 +1,3 @@
-github.com/Bh-an/sc-cdk-service-host-module-go/cdkservicehostmodule v0.2.0 h1:aokYHCS8pPjF3aMnxpcxwUj7aKB7yhCToprrBbOXTkw=
-github.com/Bh-an/sc-cdk-service-host-module-go/cdkservicehostmodule v0.2.0/go.mod h1:wBY2MNSZ9j+rynIIyMeoTujswYI2EzK5B3VhpgE0Z1s=
 github.com/Masterminds/semver/v3 v3.4.0 h1:Zog+i5UMtVoCU8oKka5P7i9q9HgrJeGzI9SA1Xbatp0=
 github.com/Masterminds/semver/v3 v3.4.0/go.mod h1:4V+yj/TJE1HU9XfppCwVMZq3I84lprf4nC11bSS5beM=
 github.com/aws/aws-cdk-go/awscdk/v2 v2.207.0 h1:W7y/4Fhg3qcnBbrhw9+mIh6gTXm5pIncb8kf6n+yDLk=
