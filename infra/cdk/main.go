@@ -113,7 +113,7 @@ func newServiceStack(app awscdk.App, cfg *environmentConfig, props *serviceStack
 		},
 	})
 
-	service := cdkservicehostmodule.NewEc2DockerService(stack, _jsii_.String("Service"), &cdkservicehostmodule.Ec2DockerServiceProps{
+	service := cdkservicehostmodule.NewPublicServiceHost(stack, _jsii_.String("Service"), &cdkservicehostmodule.PublicServiceHostProps{
 		DockerImage: props.dockerImage,
 		Infrastructure: &cdkservicehostmodule.ServiceInfrastructureProps{
 			Vpc: vpc,
