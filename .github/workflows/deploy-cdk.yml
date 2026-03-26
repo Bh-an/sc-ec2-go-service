@@ -27,8 +27,23 @@ jobs:
     env:
       DOCKER_IMAGE: ${{ inputs.docker_image }}
       DEPLOY_ENV: ${{ inputs.environment }}
+      GOPRIVATE: github.com/Bh-an/*
+      GONOSUMDB: github.com/Bh-an/*
     steps:
       - uses: actions/checkout@v4
+
+      - name: Load SSH key for shared repos
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SHARED_REPOS_SSH_KEY }}
+
+      - name: Trust GitHub SSH host key
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+      - name: Rewrite GitHub module fetches to SSH
+        run: git config --global url."ssh://git@github.com/".insteadOf https://github.com/
 
       - uses: actions/setup-go@v5
         with:
