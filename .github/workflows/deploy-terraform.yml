@@ -13,6 +13,9 @@ on:
         required: true
         type: string
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 permissions:
   id-token: write
   contents: read
@@ -25,17 +28,13 @@ jobs:
       group: terraform-${{ inputs.environment }}
       cancel-in-progress: false
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      - name: Load SSH key for shared repos
-        uses: webfactory/ssh-agent@v0.9.0
-        with:
-          ssh-private-key: ${{ secrets.SHARED_REPOS_SSH_KEY }}
+      - name: Ensure shared repos token is configured
+        run: test -n "${{ secrets.SHARED_REPOS_TOKEN }}"
 
-      - name: Trust GitHub SSH host key
-        run: |
-          mkdir -p ~/.ssh
-          ssh-keyscan github.com >> ~/.ssh/known_hosts
+      - name: Configure token-based access for shared repos
+        run: git config --global url."https://x-access-token:${{ secrets.SHARED_REPOS_TOKEN }}@github.com/".insteadOf https://github.com/
 
       - uses: hashicorp/setup-terraform@v3
         with:
