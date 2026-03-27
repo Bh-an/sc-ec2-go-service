@@ -9,6 +9,25 @@ End-to-end runbook for deploying and verifying the service on a real AWS account
 | CDK source and Go wrapper | `v0.3.3` |
 | Terraform shared module | `v0.3.5` |
 
+## Last Verified Public Baseline
+
+Fresh-clone public validation succeeded on `2026-03-27` with:
+
+- `make doctor`
+- `make bootstrap`
+- `make validate`
+- public CDK deploy, verify, and cleanup
+- Packer AMI bake and SSM publish
+- public Terraform deploy, verify, and cleanup
+- active NAT gateways after cleanup: `0`
+
+Recommended for live test reruns:
+
+```bash
+AUTO_CLEANUP_ON_VERIFY_FAILURE=1 AUTO_CLEANUP_ON_INTERRUPT=1 make deploy-cdk ENV=dev
+AUTO_CLEANUP_ON_VERIFY_FAILURE=1 AUTO_CLEANUP_ON_INTERRUPT=1 make deploy-terraform ENV=dev
+```
+
 ## 1. Preflight
 
 **Required locally:** Node 22 (preferred), Go, Terraform, Docker, Packer, AWS CLI, valid AWS credentials.

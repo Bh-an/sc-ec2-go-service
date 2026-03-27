@@ -38,6 +38,16 @@ make validate
 
 If Terraform commands report missing exported AWS credentials, run `aws-refresh-env` in the same shell and retry.
 
+Last verified public AWS baseline: a fresh-clone run from `main` completed successfully on `2026-03-27` for the full public path:
+
+- `make doctor`
+- `make bootstrap`
+- `make validate`
+- public CDK deploy/verify/cleanup
+- Packer AMI bake + SSM publish
+- public Terraform deploy/verify/cleanup
+- NAT gateways after cleanup: `0`
+
 <details>
 <summary>Scoped bootstrap and validate</summary>
 
