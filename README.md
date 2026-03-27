@@ -9,7 +9,8 @@ The application and operator repo for the Go API service. This is the main entry
 - [infra/cdk/README.md](infra/cdk/README.md) — primary CDK deployment path
 - [infra/terraform/README.md](infra/terraform/README.md) — secondary Terraform deployment path
 - [scripts/README.md](scripts/README.md) — operator command surface
-- [PROJECT.md](PROJECT.md) — engineering narrative and design decisions
+- [PROJECT.md](PROJECT.md) — how and why this got built (informal narrative)
+- [ABOUT.md](ABOUT.md) — formal engineering reference and architecture
 
 Related shared repos:
 - [`sc-cdk-service-host-module`](https://github.com/Bh-an/sc-cdk-service-host-module) — CDK source of truth
@@ -20,12 +21,14 @@ Related shared repos:
 
 For operator work on a real AWS account:
 
-- AWS CLI with valid credentials
-- Node 22 preferred
-- Go
-- Terraform
-- Docker
-- Packer
+| Tool | Version | Notes | Install |
+|------|---------|-------|---------|
+| AWS CLI | v2 | Valid credentials required | [docs](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) |
+| Node.js | 22 preferred (20, 24 supported) | Enforced by `common.sh` | [nvm](https://github.com/nvm-sh/nvm#installing-and-updating) |
+| Go | 1.24+ (app), 1.25+ (CDK consumer) | Per `go.mod` | [docs](https://go.dev/doc/install) |
+| Terraform | >= 1.10.0 | Enforced by `required_version` | [docs](https://developer.hashicorp.com/terraform/install) |
+| Docker | Latest stable | Needed for image build and local runs | [docs](https://docs.docker.com/engine/install/) |
+| Packer | Latest stable | Needed for AMI baking only | [docs](https://developer.hashicorp.com/packer/install) |
 
 Quick local preflight:
 
@@ -36,7 +39,8 @@ make bootstrap
 make validate
 ```
 
-If Terraform commands report missing exported AWS credentials, run `aws-refresh-env` in the same shell and retry.
+> [!TIP]
+> If Terraform commands report missing exported AWS credentials, run `aws-refresh-env` in the same shell and retry.
 
 Last verified public AWS baseline: a fresh-clone run from `main` completed successfully on `2026-03-27` for the full public path:
 
@@ -47,6 +51,23 @@ Last verified public AWS baseline: a fresh-clone run from `main` completed succe
 - Packer AMI bake + SSM publish
 - public Terraform deploy/verify/cleanup
 - NAT gateways after cleanup: `0`
+
+<details>
+<summary>Verification status</summary>
+
+| Capability | Status |
+|---|---|
+| Public CDK deploy / verify / cleanup | `live-verified` |
+| Public Terraform deploy / verify / cleanup | `live-verified` |
+| Packer AMI bake + SSM publish | `live-verified` |
+| CDK shared module v0.3.3 | `live-verified` |
+| Terraform shared module v0.3.5 | `live-verified` |
+| Private CDK host behind ALB | `live-verified` (earlier session) |
+| Private Terraform host | `local-validated` (plan only) |
+| `MODE=full` cleanup | `not exercised` |
+| GitHub Actions workflows | `reviewed`, not executed |
+
+</details>
 
 <details>
 <summary>Scoped bootstrap and validate</summary>
@@ -64,6 +85,27 @@ make validate TARGET=backend
 ```
 
 </details>
+
+## Architecture
+
+```mermaid
+graph TD
+    Internet((Internet)) --> EIP[Elastic IP]
+    EIP --> SG[Security Group :80]
+    SG --> Nginx["Nginx reverse proxy"]
+
+    subgraph EC2["EC2 Instance — Amazon Linux 2023"]
+        Nginx -->|proxy_pass 172.30.0.10:8081| App
+        subgraph Bridge["Docker bridge — ec2-net 172.30.0.0/24"]
+            App["Go API container<br/>172.30.0.10:8081"]
+        end
+    end
+
+    EC2 -.- EBS["KMS-encrypted EBS<br/>root 30 GiB · data 10 GiB"]
+    EC2 -.- IAM["IAM role · SSM-managed"]
+```
+
+---
 
 ## What This Repo Contains
 
@@ -113,10 +155,14 @@ The operator scripts live under [`scripts/`](scripts/) and are exposed through t
 | `make cleanup-cdk` | Tear down CDK stack | `ENV`, `MODE` (`infra` or `full`) |
 | `make cleanup-terraform` | Tear down Terraform stack | `ENV`, `MODE`, `BACKEND` |
 
-Deploys verify automatically unless you set `VERIFY=0`. Verification now retries with exponential backoff through the initial host bootstrap window before failing. If you want deploys to clean themselves up after verification timeouts or `Ctrl+C`, set `AUTO_CLEANUP_ON_VERIFY_FAILURE=1` and/or `AUTO_CLEANUP_ON_INTERRUPT=1`. Successful and failed runs end with a summary block that includes the resolved image, endpoint, instance ID, and the next cleanup command.
+Deploys verify automatically unless you set `VERIFY=0`. Verification now retries with exponential backoff through the initial host bootstrap window before failing. Successful and failed runs end with a summary block that includes the resolved image, endpoint, instance ID, and the next cleanup command.
+
+> [!TIP]
+> Set `AUTO_CLEANUP_ON_VERIFY_FAILURE=1` and/or `AUTO_CLEANUP_ON_INTERRUPT=1` to have deploys clean up automatically after verification timeouts or `Ctrl+C`.
 
 ## Configured Defaults
 
+> [!IMPORTANT]
 > **Defaults governance** — these values are load-bearing. If you change a default in code, update this table in the same commit.
 
 | Default | Value | Source |
