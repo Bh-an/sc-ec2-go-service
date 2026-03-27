@@ -8,6 +8,9 @@ A production-grade HTTP server that returns random investment-related words. Bui
 |----------|--------|----------|
 | `/api/v1` | GET | `{"message":"<random word>"}` — one of: Investments, Portfolio, Stocks, buy-the-dip, TickerTape |
 | `/health` | GET | `{"status":"ok"}` |
+| `/version` | GET | `{"version":"<tag>","gitCommit":"<sha>","buildDate":"<timestamp>"}` |
+
+All other paths return `404 Not Found`.
 
 ## Configuration
 

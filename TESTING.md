@@ -6,8 +6,8 @@ End-to-end runbook for deploying and verifying the service on a real AWS account
 
 | Dependency | Version |
 |------------|---------|
-| CDK source and Go wrapper | `v0.3.1` |
-| Terraform shared module | `v0.3.3` |
+| CDK source and Go wrapper | `v0.3.2` |
+| Terraform shared module | `v0.3.4` |
 
 ## 1. Preflight
 
@@ -79,7 +79,8 @@ make deploy-cdk ENV=dev IMAGE=ghcr.io/bh-an/ec2-go-service@sha256:<digest>
 - EC2 instance is running
 - `curl http://<public-ip>/health` → `{"status":"ok"}`
 - `curl http://<public-ip>/api/v1` → `{"message":"<word>"}`
-- `curl http://<public-ip>/` does **not** show the stock Nginx welcome page
+- `curl http://<public-ip>/version` → build metadata JSON
+- `curl -i http://<public-ip>/` returns `404 Not Found`
 
 **Cleanup:**
 
@@ -130,6 +131,7 @@ BACKEND=s3 make deploy-terraform ENV=dev IMAGE=ghcr.io/bh-an/ec2-go-service@sha2
 - Instance uses the AMI from `/sc/ec2-go-service/dev/ami-id`
 - `curl http://<public-ip>/health` → `{"status":"ok"}`
 - `curl http://<public-ip>/api/v1` → `{"message":"<word>"}`
+- `curl http://<public-ip>/version` → build metadata JSON
 
 **Cleanup:**
 
@@ -143,7 +145,7 @@ CONFIRM=dev BACKEND=s3 make cleanup-terraform ENV=dev MODE=full
 Stop and fix the repo before continuing if any of these happen:
 
 - `make resolve-image` cannot resolve a published digest
-- CDK bootstrap fails or the stack deploys but Nginx serves the stock welcome page
+- CDK bootstrap fails or `/` does not return `404`
 - The host cannot pull the configured image
 - `/health` or `/api/v1` do not come up behind Nginx
 - AMI build succeeds but the SSM parameter is not updated

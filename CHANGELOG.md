@@ -11,7 +11,9 @@ This repo does not carry its own semver tags beyond v0.1.0. Release coordination
 ### Changed
 - Hardened deploy workflow with stricter runtime contract validation
 - Dropped private module access setup (repos are now public)
-- Repinned Terraform consumer to shared module `v0.3.3`
+- Repinned Terraform consumer to shared module `v0.3.4`
+- Tightened the public API contract to assignment endpoints only (`/api/v1`, `/health`)
+- Added `/version` endpoint with build metadata from the image build
 
 ### Added
 - Cleanup commands for deployed infra (`make cleanup-cdk`, `make cleanup-terraform`)

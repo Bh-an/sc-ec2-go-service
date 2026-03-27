@@ -117,8 +117,8 @@ Image tags: immutable `sha-<commit>` on every publish, `latest` on main.
 
 | Dependency | Version |
 |------------|---------|
-| CDK source and Go wrapper | `v0.3.1` |
-| Terraform shared module | `v0.3.3` |
+| CDK source and Go wrapper | `v0.3.2` |
+| Terraform shared module | `v0.3.4` |
 
 ## Related Repos
 

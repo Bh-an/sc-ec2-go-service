@@ -7,6 +7,8 @@ IMAGE_NAME="${IMAGE_NAME:-ghcr.io/bh-an/ec2-go-service}"
 IMAGE_TAG="${1:-sha-$(git -C "$ROOT_DIR" rev-parse --short=12 HEAD)}"
 IMAGE_REF="${IMAGE_NAME}:${IMAGE_TAG}"
 PUBLISH_LATEST="${PUBLISH_LATEST:-0}"
+GIT_COMMIT="$(git -C "$ROOT_DIR" rev-parse --short=12 HEAD)"
+BUILD_DATE="$(date -u +%FT%TZ)"
 
 note "Validating application before publish"
 run_in_repo app go test ./...
@@ -16,7 +18,12 @@ note "Logging in to GHCR"
 login_ghcr
 
 note "Building image ${IMAGE_REF}"
-docker build -t "$IMAGE_REF" "$ROOT_DIR/app"
+docker build \
+  --build-arg "APP_VERSION=${IMAGE_TAG}" \
+  --build-arg "GIT_COMMIT=${GIT_COMMIT}" \
+  --build-arg "BUILD_DATE=${BUILD_DATE}" \
+  -t "$IMAGE_REF" \
+  "$ROOT_DIR/app"
 
 if [[ "$PUBLISH_LATEST" == "1" ]]; then
   docker tag "$IMAGE_REF" "${IMAGE_NAME}:latest"

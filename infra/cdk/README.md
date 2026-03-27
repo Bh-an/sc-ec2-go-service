@@ -2,7 +2,7 @@
 
 This is the **primary deployment path** for the service. It consumes the published Go CDK bindings from [`sc-cdk-service-host-module-go`](https://github.com/Bh-an/sc-cdk-service-host-module-go) to define a CloudFormation stack.
 
-Current module dependency: `cdkservicehostmodule v0.3.1`
+Current module dependency: `cdkservicehostmodule v0.3.2`
 
 ## How It Works
 

@@ -30,14 +30,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("GET /", handlers.RootHandler)
-	mux.HandleFunc("GET /api/v1", handlers.APIHandler)
-	mux.HandleFunc("GET /health", handlers.HealthHandler)
-
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", cfg.Port),
-		Handler: mux,
+		Handler: handlers.NewMux(),
 	}
 
 	go func() {

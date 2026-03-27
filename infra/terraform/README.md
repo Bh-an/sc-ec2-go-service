@@ -2,16 +2,16 @@
 
 The **secondary deployment path**. Composes the shared modules from [`sc-tf-service-host-module`](https://github.com/Bh-an/sc-tf-service-host-module) to deploy the service via Terraform.
 
-Current shared module pin: `v0.3.3`
+Current shared module pin: `v0.3.4`
 
 ## Module Sources
 
 ```hcl
 # 1_network.tf
-source = "git::ssh://git@github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/network?ref=v0.3.3"
+source = "git::ssh://git@github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/network?ref=v0.3.4"
 
 # 2_service.tf
-source = "git::ssh://git@github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/service-host?ref=v0.3.3"
+source = "git::ssh://git@github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/service-host?ref=v0.3.4"
 ```
 
 ## Environment Config Files
