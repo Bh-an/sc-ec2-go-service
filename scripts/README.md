@@ -1,6 +1,20 @@
 # Operator Scripts
 
-All scripts are invoked through the `Makefile` at the repo root. Direct invocation works but the Makefile targets are the intended interface.
+This directory owns the shell operator surface used by the service repo. Start at the [repo root README](../README.md) for the big picture or [TESTING.md](../TESTING.md) for the real AWS runbook.
+
+## Context
+
+- app behavior: [app/README.md](../app/README.md)
+- CDK path: [infra/cdk/README.md](../infra/cdk/README.md)
+- Terraform path: [infra/terraform/README.md](../infra/terraform/README.md)
+
+All scripts are invoked through the root `Makefile`. Direct invocation works, but `make` is the intended interface.
+
+## Prerequisites
+
+- Bash
+- AWS CLI for infra-affecting commands
+- the toolchain required by the specific command: Go, Node, Terraform, Docker, and/or Packer
 
 ## Script Reference
 
@@ -23,7 +37,7 @@ All scripts are invoked through the `Makefile` at the repo root. Direct invocati
 | `cleanup-cdk.sh` | `make cleanup-cdk` | CDK destroy (infra or full) |
 | `cleanup-terraform.sh` | `make cleanup-terraform` | Terraform destroy (infra or full) |
 
-Every script now emits section headers and summary blocks so the terminal output reads like a compact runbook instead of a raw command log.
+Every script emits section headers and summary blocks so the terminal output reads like a compact runbook rather than a raw command log.
 
 ## Environment Variables
 
@@ -32,25 +46,12 @@ Every script now emits section headers and summary blocks so the terminal output
 | `AWS_REGION` | All infra scripts | — (required) | Target AWS region |
 | `ENV` | Deploy, cleanup, build-ami | — (required) | Environment name (`dev`, `stage`) |
 | `IMAGE` | Deploy scripts, resolve-image | Auto-resolved | Docker image reference |
-| `TAG` | publish-image | — (required) | Image tag (e.g., `sha-abc123`) |
+| `TAG` | publish-image | — (required) | Image tag (for example `sha-abc123`) |
 | `BACKEND` | Terraform scripts | `s3` | State backend (`s3` or `local`) |
 | `VERIFY` | Deploy scripts | `1` | Set to `0` to skip deploy-time smoke verification |
-| `ENDPOINT` | smoke, verify, deploy-terraform | auto-resolved | Override endpoint for smoke verification, especially for private/caller-managed flows |
-| `MODE` | Cleanup scripts | — (required) | `infra` (resources only) or `full` (resources + SSM params) |
+| `ENDPOINT` | smoke, verify, deploy-terraform | auto-resolved | Override endpoint for smoke verification |
+| `MODE` | Cleanup scripts | — (required) | `infra` or `full` |
 | `CONFIRM` | Cleanup scripts (full) | — | Must equal `ENV` to confirm destructive cleanup |
 | `AMI_REGIONS` | build-ami | `""` | Comma-separated regions for AMI replication |
 | `PUBLISH_AMI_TO_SSM` | build-ami | `1` | Set to `0` to skip SSM parameter publication |
 | `GITHUB_TOKEN` | login-ghcr, publish-image | — | PAT with `write:packages` for GHCR push |
-
-## Constants in common.sh
-
-| Constant | Value | Line |
-|----------|-------|------|
-| `SERVICE_IMAGE_NAME` | `ghcr.io/bh-an/ec2-go-service` | `7` |
-| Preferred Node version | `22` | `107` |
-| Supported Node versions | `20, 22, 24` | `113-123` |
-| TF backend default | `s3` | `161` |
-| SSM parameter pattern | `/sc/ec2-go-service/{env}/ami-id` | `191` |
-| TF state bucket | `sc-ec2-go-service-tfstate-{account}-{region}` | `331` |
-| CDK bootstrap stack | `CDKToolkit` | `415` |
-| AMI name prefix | `ec2-docker-host` | `465` |

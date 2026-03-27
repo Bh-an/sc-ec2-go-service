@@ -1,6 +1,16 @@
 # Go Application
 
-A production-grade HTTP server that returns random investment-related words. Built as a static binary, runs in a distroless container.
+The service application that powers the assignment API. This README is only about app behavior; for deploy/test flow, start at the root [README.md](../README.md) or the AWS runbook in [TESTING.md](../TESTING.md).
+
+## Context
+
+- Owned by: [`sc-ec2-go-service`](../README.md)
+- Deployed by: [CDK consumer](../infra/cdk/README.md) and [Terraform consumer](../infra/terraform/README.md)
+- Verified through: [operator scripts](../scripts/README.md)
+
+## Prerequisites
+
+- Go
 
 ## Endpoints
 
@@ -22,7 +32,7 @@ Runtime config is loaded from `config.json` in the working directory:
 }
 ```
 
-There are no environment variable overrides or CLI flags for the app itself. Infrastructure configuration (region, image reference, etc.) is handled by the deployment layer.
+There are no environment variable overrides or CLI flags for the app itself. Infrastructure configuration such as region, image reference, and AMI selection is handled by the deployment layer.
 
 ## Running Locally
 
@@ -42,7 +52,7 @@ go test ./...
 
 ## Dockerfile
 
-Multi-stage build producing a ~2MB distroless image:
+Multi-stage build producing a small distroless image:
 
 | Stage | Base | Purpose |
 |-------|------|---------|
@@ -53,7 +63,7 @@ The image is published to `ghcr.io/bh-an/ec2-go-service` with immutable `sha-<co
 
 ## Design Notes
 
-- **`http.NewServeMux()`** over `DefaultServeMux` — avoids global mutable state where any imported package could register handlers
-- **`math/rand/v2`** (Go 1.22+) — auto-seeded, no manual seed boilerplate
-- **`log/slog`** with JSON output — structured, container-friendly, ready for CloudWatch
-- **Graceful shutdown** — 5-second window for in-flight requests before exit
+- `http.NewServeMux()` over `DefaultServeMux`
+- `math/rand/v2` for random word selection
+- `log/slog` with JSON output
+- graceful shutdown with a 5-second window

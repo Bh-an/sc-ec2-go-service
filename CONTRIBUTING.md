@@ -23,6 +23,17 @@ type(scope): short description
 | `dev` | Integration and release prep |
 | `ci-cd` | Workflow and automation changes only |
 
+## Pending Branch Protection Plan
+
+This is the intended GitHub policy, but it is not enforced yet:
+
+- `main` should require pull requests
+- direct pushes to `main` should be blocked
+- required checks should pass before merge
+- `dev` should at least block force-push and deletion
+
+Until GitHub protection is enabled, contributors should follow the same workflow manually: land work on `dev`, run checks, and merge to `main` through a PR.
+
 ## Before You Commit
 
 ```bash

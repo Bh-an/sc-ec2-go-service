@@ -1,8 +1,33 @@
 # sc-ec2-go-service
 
-The operator and application repo for the Go API service. It owns the application code, the Docker image, and both deployment paths (CDK primary, Terraform secondary). Shared infrastructure is consumed as versioned modules from the platform repos.
+The application and operator repo for the Go API service. This is the main entrypoint for running the assignment, publishing the image, deploying with CDK or Terraform, and carrying out AWS validation.
 
-## Quickstart
+## Start Here
+
+- [TESTING.md](TESTING.md) — end-to-end AWS runbook
+- [app/README.md](app/README.md) — Go API contract and local app behavior
+- [infra/cdk/README.md](infra/cdk/README.md) — primary CDK deployment path
+- [infra/terraform/README.md](infra/terraform/README.md) — secondary Terraform deployment path
+- [scripts/README.md](scripts/README.md) — operator command surface
+- [PROJECT.md](PROJECT.md) — engineering narrative and design decisions
+
+Related shared repos:
+- [`sc-cdk-service-host-module`](https://github.com/Bh-an/sc-cdk-service-host-module) — CDK source of truth
+- [`sc-cdk-service-host-module-go`](https://github.com/Bh-an/sc-cdk-service-host-module-go) — generated Go bindings consumed here
+- [`sc-tf-service-host-module`](https://github.com/Bh-an/sc-tf-service-host-module) — shared Terraform modules and Packer AMI pipeline
+
+## Prerequisites
+
+For operator work on a real AWS account:
+
+- AWS CLI with valid credentials
+- Node 22 preferred
+- Go
+- Terraform
+- Docker
+- Packer
+
+Quick local preflight:
 
 ```bash
 export AWS_REGION=ap-south-1
@@ -28,7 +53,33 @@ make validate TARGET=backend
 
 </details>
 
-For the full AWS deployment and verification checklist, see [TESTING.md](TESTING.md).
+## What This Repo Contains
+
+### Application
+
+The app lives under [`app/`](app/) and exposes the assignment API plus operational endpoints:
+
+- `GET /api/v1`
+- `GET /health`
+- `GET /version`
+
+All other public paths return `404`.
+
+### CDK Deployment Path
+
+The primary deployment path lives under [`infra/cdk/`](infra/cdk/). It consumes the published Go bindings from `sc-cdk-service-host-module-go` and deploys the service through CloudFormation/CDK.
+
+Use this path when you want the reference deployment flow for the assignment.
+
+### Terraform Deployment Path
+
+The secondary deployment path lives under [`infra/terraform/`](infra/terraform/). It composes the shared Terraform modules from `sc-tf-service-host-module` and expects a baked AMI to exist.
+
+Use this path when you want Terraform validation, AMI-backed runtime checks, or private/caller-managed posture testing.
+
+### Operator Surface
+
+The operator scripts live under [`scripts/`](scripts/) and are exposed through the root `Makefile`. This repo owns the runbook-style workflows for bootstrap, validation, image resolution, deploy, verify, cleanup, and AMI baking.
 
 ## Operator Commands
 
@@ -50,7 +101,7 @@ For the full AWS deployment and verification checklist, see [TESTING.md](TESTING
 | `make cleanup-cdk` | Tear down CDK stack | `ENV`, `MODE` (`infra` or `full`) |
 | `make cleanup-terraform` | Tear down Terraform stack | `ENV`, `MODE`, `BACKEND` |
 
-Deploys verify automatically unless you set `VERIFY=0`. Successful and failed runs now end with a summary block that includes the resolved image, endpoint, instance ID, and the next cleanup command.
+Deploys verify automatically unless you set `VERIFY=0`. Successful and failed runs end with a summary block that includes the resolved image, endpoint, instance ID, and the next cleanup command.
 
 ## Configured Defaults
 
@@ -95,19 +146,13 @@ Deploys verify automatically unless you set `VERIFY=0`. Successful and failed ru
 
 ## Directory Layout
 
-```
+```text
 app/                    Go HTTP application
-  cmd/server/           Entry point
-  internal/             Config, handlers, models
-  Dockerfile            Multi-stage build → distroless
-  config.json           Runtime config (port: 8081)
-
 infra/
-  cdk/                  CDK consumer stack (Go, primary path)
+  cdk/                  CDK consumer stack (primary path)
   terraform/            Terraform consumer stack (secondary path)
-
-scripts/                Operator scripts (bootstrap, validate, deploy, cleanup)
-.github/workflows/      CI/CD (test, publish-image, deploy-cdk, deploy-terraform)
+scripts/                Operator scripts and shared shell helpers
+.github/workflows/      CI/CD workflows
 ```
 
 ## CI/CD
@@ -128,15 +173,7 @@ Image tags: immutable `sha-<commit>` on every publish, `latest` on main.
 | CDK source and Go wrapper | `v0.3.2` |
 | Terraform shared module | `v0.3.5` |
 
-Terraform now supports both the assignment-default public host path and a private/caller-managed host path. This repo keeps the public path as the default, with NAT disabled unless you explicitly opt into a private deployment that needs outbound egress.
-
-## Related Repos
-
-| Repo | Role |
-|------|------|
-| [sc-cdk-service-host-module](https://github.com/Bh-an/sc-cdk-service-host-module) | Reusable CDK constructs (source of truth) |
-| [sc-cdk-service-host-module-go](https://github.com/Bh-an/sc-cdk-service-host-module-go) | Generated Go CDK bindings |
-| [sc-tf-service-host-module](https://github.com/Bh-an/sc-tf-service-host-module) | Terraform modules + Packer AMI pipeline |
+Terraform supports both the assignment-default public host path and a private/caller-managed host path. This repo keeps the public path as the default, with NAT disabled unless you explicitly opt into a private deployment that needs outbound egress.
 
 ## Contributing
 

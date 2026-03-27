@@ -1,16 +1,30 @@
 # CDK Consumer
 
-This is the **primary deployment path** for the service. It consumes the published Go CDK bindings from [`sc-cdk-service-host-module-go`](https://github.com/Bh-an/sc-cdk-service-host-module-go) to define a CloudFormation stack.
+The primary deployment path for the service. This directory is the service repo’s CDK consumer, not the shared infra source of truth.
+
+## Context
+
+- Start at: [repo root README](../../README.md)
+- Full runbook: [TESTING.md](../../TESTING.md)
+- Shared source of truth: [`sc-cdk-service-host-module`](https://github.com/Bh-an/sc-cdk-service-host-module)
+- Published bindings consumed here: [`sc-cdk-service-host-module-go`](https://github.com/Bh-an/sc-cdk-service-host-module-go)
 
 Current module dependency: `cdkservicehostmodule v0.3.2`
+
+## Prerequisites
+
+- AWS CLI with valid credentials
+- Node 22 preferred
+- Go
+- CDK bootstrap available in the target account/region, or `make bootstrap TARGET=cdk`
 
 ## How It Works
 
 1. Reads `DEPLOY_ENV` (defaults to `dev`)
 2. Loads `environments/<env>.json` for region, VPC shape, service name, and tags
 3. Creates an inline VPC with the configured CIDR and subnet layout
-4. Instantiates `cdkservicehostmodule.NewPublicServiceHost` with the VPC, subnet selection, Docker image, and shared tags
-5. Outputs the service endpoint (EIP) as a CloudFormation output
+4. Instantiates `cdkservicehostmodule.NewPublicServiceHost`
+5. Outputs the service endpoint as a CloudFormation output
 
 ## Environment Config Files
 
@@ -42,10 +56,9 @@ Located in `environments/`. JSON format:
 From the repo root:
 
 ```bash
-make bootstrap TARGET=cdk      # create CDKToolkit if missing
-make validate TARGET=cdk       # build + synth for both environments
+make bootstrap TARGET=cdk
+make validate TARGET=cdk
 make deploy-cdk ENV=dev
+make verify-cdk ENV=dev
 make cleanup-cdk ENV=dev MODE=infra
 ```
-
-For the full AWS checklist, see [TESTING.md](../../TESTING.md).

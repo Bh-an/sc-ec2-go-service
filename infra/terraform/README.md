@@ -1,8 +1,20 @@
 # Terraform Consumer
 
-The **secondary deployment path**. Composes the shared modules from [`sc-tf-service-host-module`](https://github.com/Bh-an/sc-tf-service-host-module) to deploy the service via Terraform.
+The secondary deployment path. This directory composes the shared Terraform modules from [`sc-tf-service-host-module`](https://github.com/Bh-an/sc-tf-service-host-module) to deploy the service.
+
+## Context
+
+- Start at: [repo root README](../../README.md)
+- Full runbook: [TESTING.md](../../TESTING.md)
+- Shared Terraform/Packer repo: [`sc-tf-service-host-module`](https://github.com/Bh-an/sc-tf-service-host-module)
 
 Current shared module pin: `v0.3.5`
+
+## Prerequisites
+
+- AWS CLI with valid credentials
+- Terraform
+- a baked AMI published to the configured SSM parameter for the environment
 
 ## Module Sources
 
@@ -33,35 +45,27 @@ Located in `environments/`. Terraform `.tfvars` format:
 | Mode | How | State Location |
 |------|-----|---------------|
 | S3 (default) | `make deploy-terraform ENV=dev` | `sc-ec2-go-service-tfstate-{account}-{region}/{env}/terraform.tfstate` |
-| Local | `BACKEND=local make deploy-terraform ENV=dev` | Local `terraform.tfstate` |
+| Local | `BACKEND=local make deploy-terraform ENV=dev` | local `terraform.tfstate` |
 
 The S3 bucket is created by `make bootstrap TARGET=backend`.
 
 ## Key Differences From CDK Path
 
-- Requires a **Packer AMI** to exist before deployment (CDK uses a stock AL2023 AMI)
-- Uses SSH-based module sources (CDK uses a Go module dependency)
-- State is managed by Terraform (CDK uses CloudFormation)
-- Supports both public and private/caller-managed exposure modes; this repo defaults to the public assignment posture
-
-## Exposure Modes
-
-- `module-public` — public subnet + module-managed EIP + public `api_endpoint`
-- `private` — private subnet + no EIP + VPC-only ingress default
-- `caller-managed` — private subnet + no EIP + caller-supplied ingress such as an ALB security group
-
-For the public assignment path, this repo disables NAT creation. If you switch to a private or caller-managed Terraform deployment and still need outbound image/package access, set `enable_nat_gateways = true`.
+- requires a Packer AMI before deployment
+- uses shared Terraform modules instead of Go CDK bindings
+- supports public, private, and caller-managed exposure modes
+- uses Terraform state instead of CloudFormation
 
 ## Commands
 
 From the repo root:
 
 ```bash
-make bootstrap TARGET=backend     # create S3 state bucket
-make validate TARGET=terraform    # init + validate
-make build-ami ENV=dev            # bake AMI (prerequisite)
+make bootstrap TARGET=backend
+make validate TARGET=terraform
+make plan-terraform ENV=dev
+make build-ami ENV=dev
 make deploy-terraform ENV=dev
+make verify-terraform ENV=dev
 make cleanup-terraform ENV=dev MODE=infra
 ```
-
-For the full AWS checklist, see [TESTING.md](../../TESTING.md).
