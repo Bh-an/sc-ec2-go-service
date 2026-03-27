@@ -22,6 +22,7 @@ This repo does not carry its own semver tags beyond v0.1.0. Release coordination
 - Smoke verification now retries with exponential backoff through the initial bootstrap window before failing
 - Deploy scripts can optionally auto-clean up infra after verification timeouts or interrupt signals
 - Terraform commands now fail early with `aws-refresh-env` guidance when exported AWS env creds are missing
+- Terraform verification now uses the public host root as its smoke base instead of reusing the route-specific `api_endpoint` output
 
 ### Added
 - Cleanup commands for deployed infra (`make cleanup-cdk`, `make cleanup-terraform`)

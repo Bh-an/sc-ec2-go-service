@@ -22,3 +22,8 @@ output "has_public_endpoint" {
   description = "Whether the service host has a module-managed public endpoint"
   value       = module.service.has_public_endpoint
 }
+
+output "ami_id" {
+  description = "Resolved AMI ID used by the service host"
+  value       = module.service.ami_id
+}

@@ -67,10 +67,11 @@ run_in_repo infra/terraform terraform apply -auto-approve -var-file="$TFVARS_PAT
 exposure_kind="$(terraform_exposure_kind)"
 instance_id="$(terraform_instance_id)"
 public_ip="$(terraform_public_ip)"
-api_endpoint="$(terraform_public_endpoint)"
+public_endpoint="$(terraform_public_endpoint)"
+api_endpoint="$(terraform_api_endpoint)"
 ami_id="$(terraform_ami_id)"
-endpoint_summary="${api_endpoint:-${public_ip:-none}}"
-verification_endpoint="${ENDPOINT:-${api_endpoint:-${public_ip:-}}}"
+endpoint_summary="${public_endpoint:-${public_ip:-none}}"
+verification_endpoint="${ENDPOINT:-${public_endpoint:-${public_ip:-}}}"
 
 if verify_enabled; then
   if [[ -n "$verification_endpoint" ]]; then
@@ -107,6 +108,7 @@ summary_line "exposure" "${exposure_kind:-unknown}"
 summary_line "instance id" "${instance_id:-unknown}"
 summary_line "public ip" "${public_ip:-none}"
 summary_line "endpoint" "$endpoint_summary"
+summary_line "api endpoint" "${api_endpoint:-none}"
 summary_line "ami id" "${ami_id:-unknown}"
 summary_line "verification" "$verification_status"
 summary_line "cleanup on fail" "$AUTO_CLEANUP_VERIFY"

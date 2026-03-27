@@ -606,12 +606,19 @@ terraform_output_text() {
   printf '%s' "$raw"
 }
 
-terraform_public_endpoint() {
+terraform_api_endpoint() {
   terraform_output_text api_endpoint || true
 }
 
 terraform_public_ip() {
   terraform_output_text public_ip || true
+}
+
+terraform_public_endpoint() {
+  local public_ip
+  public_ip="$(terraform_public_ip)"
+  [[ -n "$public_ip" ]] || return 1
+  normalize_endpoint_url "$public_ip"
 }
 
 terraform_instance_id() {
@@ -658,7 +665,7 @@ resolve_smoke_endpoint() {
     terraform|auto)
       endpoint="$(terraform_public_endpoint)"
       if [[ -z "$endpoint" ]]; then
-        endpoint="$(terraform_public_ip)"
+        endpoint="$(terraform_api_endpoint)"
       fi
       ;;
     *)
