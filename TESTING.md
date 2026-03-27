@@ -7,7 +7,7 @@ End-to-end runbook for deploying and verifying the service on a real AWS account
 | Dependency | Version |
 |------------|---------|
 | CDK source and Go wrapper | `v0.3.2` |
-| Terraform shared module | `v0.3.4` |
+| Terraform shared module | `v0.3.5` |
 
 ## 1. Preflight
 
@@ -132,6 +132,21 @@ BACKEND=s3 make deploy-terraform ENV=dev IMAGE=ghcr.io/bh-an/ec2-go-service@sha2
 - `curl http://<public-ip>/health` → `{"status":"ok"}`
 - `curl http://<public-ip>/api/v1` → `{"message":"<word>"}`
 - `curl http://<public-ip>/version` → build metadata JSON
+
+<details>
+<summary>Optional private Terraform validation</summary>
+
+```bash
+BACKEND=s3 terraform -chdir=infra/terraform plan \
+  -var-file=environments/dev.tfvars \
+  -var exposure_kind=caller-managed \
+  -var enable_nat_gateways=true \
+  -var 'ingress_rules=[{port=80,description="ALB to Nginx",source_security_group_id="sg-0123456789abcdef0"}]'
+```
+
+Use this to validate the private/caller-managed shape before wiring a real ALB consumer.
+
+</details>
 
 **Cleanup:**
 

@@ -12,3 +12,13 @@ output "api_endpoint" {
   description = "API endpoint when Elastic IP is enabled"
   value       = module.service.api_endpoint
 }
+
+output "exposure_kind" {
+  description = "Effective exposure posture for the Terraform service host"
+  value       = module.service.exposure_kind
+}
+
+output "has_public_endpoint" {
+  description = "Whether the service host has a module-managed public endpoint"
+  value       = module.service.has_public_endpoint
+}

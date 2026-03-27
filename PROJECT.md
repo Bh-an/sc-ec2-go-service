@@ -165,7 +165,7 @@ Things done for the assignment that wouldn't survive a real team:
 - **Single AZ** — the CDK env configs use `maxAzs: 1`. A real deployment needs at least two AZs for availability.
 - **No ALB in the CDK path** — the `PublicServiceHost` exposes an EIP directly. A real service would put an ALB in front, which the `PrivateServiceHost` construct already supports.
 - **Public GHCR assumption** — the bootstrap script pulls the container image from public GHCR without authentication. A private registry would need ECR or GHCR auth credentials on the host.
-- **NAT Gateway in the network module** — the module always creates one even though the service is in a public subnet and doesn't need it. Fixing this was out of scope for the assignment.
+- **NAT Gateway in the network module** — this started as always-on and unnecessary for the public assignment path. It is now optional so the public Terraform deployment can avoid NAT cost, while private/caller-managed deployments can still enable it when they need outbound egress.
 - **Local state as TF fallback** — `BACKEND=local` exists for convenience but should never be used in a team setting.
 - **No monitoring** — no CloudWatch alarms, no container health check beyond the bootstrap curl, no log aggregation. The structured JSON logging (`log/slog`) is ready for it, but the infrastructure isn't wired up.
 

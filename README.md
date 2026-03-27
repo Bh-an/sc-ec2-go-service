@@ -118,7 +118,9 @@ Image tags: immutable `sha-<commit>` on every publish, `latest` on main.
 | Dependency | Version |
 |------------|---------|
 | CDK source and Go wrapper | `v0.3.2` |
-| Terraform shared module | `v0.3.4` |
+| Terraform shared module | `v0.3.5` |
+
+Terraform now supports both the assignment-default public host path and a private/caller-managed host path. This repo keeps the public path as the default, with NAT disabled unless you explicitly opt into a private deployment that needs outbound egress.
 
 ## Related Repos
 
