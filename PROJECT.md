@@ -26,7 +26,7 @@ The assignment became a proving ground for patterns that would survive in a real
 - **Two deployment paths** (CDK primary, Terraform secondary) producing equivalent infrastructure
 - **A published CDK construct library** with Go bindings via JSII
 - **A Packer AMI pipeline** that bakes Docker and Nginx into the base image
-- **An operator surface** (Makefile + scripts) that handles bootstrap, validation, deployment, and cleanup from a single repo
+- **An operator surface** (Makefile + scripts) that handles bootstrap, validation, deploy, verify, plan, and cleanup from a single repo
 
 The scope expansion was deliberate. Every choice was made as if the code would run in production and be maintained by someone else.
 
@@ -55,7 +55,7 @@ The cost is real: coordinated releases, cross-repo dependency management, and a 
 The assignment asked for Terraform. The project delivers Terraform and adds CDK as the primary path. Why?
 
 **CDK advantages for this use case:**
-- No AMI dependency — CDK uses `MachineImage.latestAmazonLinux2023()` and installs Docker/Nginx via user data. The Terraform path needs a Packer AMI to exist first.
+- No AMI build dependency — CDK uses `MachineImage.latestAmazonLinux2023()` and installs Docker/Nginx via user data. The Terraform path needs a Packer AMI to exist first.
 - The construct library can be published as a versioned npm package and consumed as a Go module via JSII. Terraform modules don't have an equivalent cross-language publish story.
 - CloudFormation handles state management. No S3 backend bucket to create and maintain.
 
@@ -100,6 +100,11 @@ The CDK path installs Docker and Nginx at boot time via user data. The Terraform
 
 The baked AMI approach is better for production. The install-at-boot approach is acceptable for development and avoids the AMI management overhead. Having both in the project demonstrates both patterns.
 
+One thing changed after live AWS testing: root volume size is no longer a meaningful distinction between the two paths. The baked AMI path proved that the current tested host contract needs `>=30 GiB`, so the CDK default was aligned to `30 GiB` as well. The difference that remains is operational, not storage-related:
+
+- CDK still installs system packages at boot
+- Terraform still boots from a pre-baked AMI
+
 The SSM Parameter Store integration (`/sc/ec2-go-service/{env}/ami-id`) was added later to pin a tested AMI ID rather than always grabbing the latest build. This is the production-grade pattern — build an AMI, test it, publish its ID to SSM, and let Terraform read from there.
 
 ## The Operator Surface
@@ -116,6 +121,14 @@ The layering is: `Makefile` → `scripts/<action>.sh` → `scripts/common.sh` (s
 
 The `bootstrap.sh` script is the entry point for a fresh machine. It doesn't assume anything is installed or configured. It checks for each tool, warns about version mismatches, and creates the AWS resources needed for deployment (CDKToolkit stack, S3 state bucket).
 
+That operator surface grew beyond the initial bootstrap/deploy shape. The current model also includes:
+
+- `doctor` for local/operator readiness
+- `smoke` for direct endpoint checks
+- `verify-cdk` and `verify-terraform` for deploy-specific verification
+- `plan-terraform` for pre-apply review
+- post-deploy summaries so successful and failed runs end with the exact image, endpoint, instance ID, and cleanup command
+
 ## The Runtime Model
 
 ```
@@ -130,6 +143,17 @@ The container gets IP `172.30.0.10` on the `ec2-net` bridge. This means Nginx's 
 
 **Why not bind the container directly to host port 8081?**
 That would expose the app port to the public network interface, bypassing Nginx. The bridge network keeps the container isolated — only Nginx can reach it.
+
+The public runtime contract is intentionally strict:
+
+- `GET /api/v1`
+- `GET /health`
+- `GET /version`
+- all other public paths return `404`
+
+There is one intentionally non-public diagnostic route:
+
+- `GET /_nginx/health` served directly by Nginx for bootstrap/debugging
 
 ## Security Posture
 
