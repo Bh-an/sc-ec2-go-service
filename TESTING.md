@@ -21,12 +21,13 @@ Fresh-clone public validation succeeded on `2026-03-27` with:
 - public Terraform deploy, verify, and cleanup
 - active NAT gateways after cleanup: `0`
 
-Recommended for live test reruns:
-
-```bash
-AUTO_CLEANUP_ON_VERIFY_FAILURE=1 AUTO_CLEANUP_ON_INTERRUPT=1 make deploy-cdk ENV=dev
-AUTO_CLEANUP_ON_VERIFY_FAILURE=1 AUTO_CLEANUP_ON_INTERRUPT=1 make deploy-terraform ENV=dev
-```
+> [!TIP]
+> For live test reruns, enable auto-cleanup so failed verifications and interrupts don't leave infrastructure behind:
+>
+> ```bash
+> AUTO_CLEANUP_ON_VERIFY_FAILURE=1 AUTO_CLEANUP_ON_INTERRUPT=1 make deploy-cdk ENV=dev
+> AUTO_CLEANUP_ON_VERIFY_FAILURE=1 AUTO_CLEANUP_ON_INTERRUPT=1 make deploy-terraform ENV=dev
+> ```
 
 ## 1. Preflight
 
@@ -39,7 +40,8 @@ make bootstrap
 make validate
 ```
 
-If Terraform init/plan/apply complains about missing exported AWS credentials, run `aws-refresh-env` in the same shell and rerun the command.
+> [!TIP]
+> If Terraform init/plan/apply complains about missing exported AWS credentials, run `aws-refresh-env` in the same shell and rerun the command.
 
 <details>
 <summary>Scoped preflight</summary>
@@ -58,7 +60,8 @@ make validate TARGET=backend     # fails if BACKEND=s3 and bucket is missing
 
 </details>
 
-**Sibling clone needed for AMI builds:** `sc-tf-service-host-module` must be cloned alongside this repo.
+> [!NOTE]
+> **Sibling clone needed for AMI builds:** `sc-tf-service-host-module` must be cloned alongside this repo.
 
 ## 2. Image Resolution
 
@@ -199,9 +202,13 @@ BACKEND=s3 make cleanup-terraform ENV=dev MODE=infra
 CONFIRM=dev BACKEND=s3 make cleanup-terraform ENV=dev MODE=full
 ```
 
+> [!NOTE]
+> Private Terraform paths are `local-validated` (plan only, not deployed end-to-end). `MODE=full` cleanup has not been exercised in the current verification cycle.
+
 ## 6. Stop Conditions
 
-Stop and fix the repo before continuing if any of these happen:
+> [!WARNING]
+> Stop and fix the repo before continuing if any of these happen:
 
 - `make resolve-image` cannot resolve a published digest
 - CDK bootstrap fails or `/` does not return `404`
