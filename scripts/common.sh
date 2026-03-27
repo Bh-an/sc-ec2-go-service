@@ -7,17 +7,67 @@ readonly ROOT_DIR
 SERVICE_IMAGE_NAME="${IMAGE_NAME:-ghcr.io/bh-an/ec2-go-service}"
 readonly SERVICE_IMAGE_NAME
 
+if [[ -t 2 ]]; then
+  UI_RESET=$'\033[0m'
+  UI_BOLD=$'\033[1m'
+  UI_BLUE=$'\033[34m'
+  UI_GREEN=$'\033[32m'
+  UI_YELLOW=$'\033[33m'
+  UI_RED=$'\033[31m'
+  UI_CYAN=$'\033[36m'
+else
+  UI_RESET=""
+  UI_BOLD=""
+  UI_BLUE=""
+  UI_GREEN=""
+  UI_YELLOW=""
+  UI_RED=""
+  UI_CYAN=""
+fi
+
+log_line() {
+  local level="$1"
+  local color="$2"
+  shift 2
+  printf '%s[%s]%s %s\n' "${color}${UI_BOLD}" "$level" "$UI_RESET" "$*" >&2
+}
+
+section() {
+  printf '\n%s%s%s\n' "${UI_BLUE}${UI_BOLD}" "== $* ==" "$UI_RESET" >&2
+}
+
 note() {
-  printf '[info] %s\n' "$*"
+  log_line "info" "$UI_BLUE" "$*"
 }
 
 warn() {
-  printf '[warn] %s\n' "$*" >&2
+  log_line "warn" "$UI_YELLOW" "$*"
+}
+
+success() {
+  log_line "ok" "$UI_GREEN" "$*"
 }
 
 fail() {
-  printf '[error] %s\n' "$*" >&2
+  log_line "error" "$UI_RED" "$*"
   exit 1
+}
+
+summary_start() {
+  printf '\n%s%s%s\n' "${UI_CYAN}${UI_BOLD}" "$1" "$UI_RESET" >&2
+}
+
+summary_line() {
+  local key="$1"
+  local value="${2:-}"
+  if [[ -z "$value" ]]; then
+    value="—"
+  fi
+  printf '  %-18s %s\n' "${key}:" "$value" >&2
+}
+
+summary_next_step() {
+  printf '  %-18s %s\n' "next:" "$1" >&2
 }
 
 require_tool() {
@@ -92,6 +142,12 @@ resolve_account_id() {
   aws sts get-caller-identity --query Account --output text
 }
 
+resolve_aws_arn() {
+  require_tool aws
+  require_aws_env
+  aws sts get-caller-identity --query Arn --output text
+}
+
 require_cleanup_mode() {
   case "$1" in
     infra|full)
@@ -112,6 +168,18 @@ resolve_backend_mode() {
       ;;
   esac
   printf '%s' "$mode"
+}
+
+verify_enabled() {
+  local verify_value="${VERIFY:-1}"
+  case "$verify_value" in
+    0|false|FALSE|no|NO)
+      return 1
+      ;;
+    *)
+      return 0
+      ;;
+  esac
 }
 
 require_full_cleanup_confirmation() {
@@ -226,9 +294,10 @@ verify_generic_image_ref() {
 
 resolve_deploy_image() {
   local requested_ref="${1:-}"
-  local resolved_ref digest
+  local digest
 
   if [[ -z "$requested_ref" ]]; then
+    local resolved_ref
     resolved_ref="$(resolve_default_service_image)"
     note "Using latest published service image: ${resolved_ref}"
     printf '%s' "$resolved_ref"
@@ -435,17 +504,173 @@ run_in_repo() {
   )
 }
 
+cdk_env_config_path() {
+  local environment_name="$1"
+  printf '%s/infra/cdk/environments/%s.json' "$ROOT_DIR" "$environment_name"
+}
+
+cdk_stack_name_for_env() {
+  local environment_name="$1"
+  local config_path stack_name
+  config_path="$(cdk_env_config_path "$environment_name")"
+  require_file "$config_path"
+  stack_name="$(sed -n 's/.*"stackName"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$config_path" | head -n1)"
+  [[ -n "$stack_name" ]] || fail "unable to resolve CDK stack name from ${config_path}"
+  printf '%s' "$stack_name"
+}
+
+cdk_service_endpoint_for_env() {
+  local environment_name="$1"
+  local stack_name
+  stack_name="$(cdk_stack_name_for_env "$environment_name")"
+  aws cloudformation describe-stacks \
+    --region "$(current_region)" \
+    --stack-name "$stack_name" \
+    --query "Stacks[0].Outputs[?OutputKey=='ServiceEndpoint'].OutputValue" \
+    --output text 2>/dev/null | tr -d '\r'
+}
+
+cdk_instance_id_for_env() {
+  local environment_name="$1"
+  local stack_name
+  stack_name="$(cdk_stack_name_for_env "$environment_name")"
+  aws ec2 describe-instances \
+    --region "$(current_region)" \
+    --filters "Name=tag:aws:cloudformation:stack-name,Values=${stack_name}" "Name=instance-state-name,Values=pending,running,stopping,stopped" \
+    --query "Reservations[].Instances[].InstanceId" \
+    --output text 2>/dev/null | awk 'NF {print $1}'
+}
+
+terraform_output_json() {
+  local name="$1"
+  run_in_repo infra/terraform terraform output -json "$name" 2>/dev/null || true
+}
+
+terraform_output_text() {
+  local name="$1"
+  local raw
+  raw="$(terraform_output_json "$name")"
+  [[ -n "$raw" && "$raw" != "null" ]] || return 1
+
+  if [[ "$raw" == \"*\" ]]; then
+    raw="${raw#\"}"
+    raw="${raw%\"}"
+  fi
+  printf '%s' "$raw"
+}
+
+terraform_public_endpoint() {
+  terraform_output_text api_endpoint || true
+}
+
+terraform_public_ip() {
+  terraform_output_text public_ip || true
+}
+
+terraform_instance_id() {
+  terraform_output_text instance_id || true
+}
+
+terraform_exposure_kind() {
+  terraform_output_text exposure_kind || true
+}
+
+terraform_has_public_endpoint() {
+  terraform_output_text has_public_endpoint || true
+}
+
+terraform_ami_id() {
+  terraform_output_text ami_id || true
+}
+
+normalize_endpoint_url() {
+  local endpoint="$1"
+  [[ -n "$endpoint" ]] || fail "endpoint is required"
+  if [[ "$endpoint" == http://* || "$endpoint" == https://* ]]; then
+    printf '%s' "${endpoint%/}"
+  else
+    printf 'http://%s' "${endpoint%/}"
+  fi
+}
+
+resolve_smoke_endpoint() {
+  local target="${1:-auto}"
+  local environment_name="${2:-${DEPLOY_ENV:-dev}}"
+  local explicit_endpoint="${3:-${ENDPOINT:-}}"
+  local endpoint
+
+  if [[ -n "$explicit_endpoint" ]]; then
+    normalize_endpoint_url "$explicit_endpoint"
+    return 0
+  fi
+
+  case "$target" in
+    cdk)
+      endpoint="$(cdk_service_endpoint_for_env "$environment_name")"
+      ;;
+    terraform|auto)
+      endpoint="$(terraform_public_endpoint)"
+      if [[ -z "$endpoint" ]]; then
+        endpoint="$(terraform_public_ip)"
+      fi
+      ;;
+    *)
+      fail "smoke target must be one of: auto, cdk, terraform"
+      ;;
+  esac
+
+  [[ -n "$endpoint" && "$endpoint" != "null" ]] || fail "unable to resolve a public endpoint for ${target}/${environment_name}; set ENDPOINT explicitly for private verification"
+  normalize_endpoint_url "$endpoint"
+}
+
+http_status() {
+  local url="$1"
+  curl -sS -o /tmp/sc-ec2-go-service-http-body.$$ -w '%{http_code}' "$url"
+}
+
+read_last_http_body() {
+  cat /tmp/sc-ec2-go-service-http-body.$$ 2>/dev/null || true
+}
+
+assert_http_contains() {
+  local url="$1"
+  local expected_status="$2"
+  local expected_fragment="$3"
+  local label="$4"
+  local status body
+
+  note "Checking ${label}: ${url}"
+  status="$(http_status "$url")" || fail "${label} request failed: ${url}"
+  body="$(read_last_http_body)"
+  [[ "$status" == "$expected_status" ]] || fail "${label} returned HTTP ${status}, expected ${expected_status}"
+  [[ "$body" == *"$expected_fragment"* ]] || fail "${label} response did not contain expected fragment: ${expected_fragment}"
+}
+
+assert_http_status() {
+  local url="$1"
+  local expected_status="$2"
+  local label="$3"
+  local status
+
+  note "Checking ${label}: ${url}"
+  status="$(http_status "$url")" || fail "${label} request failed: ${url}"
+  [[ "$status" == "$expected_status" ]] || fail "${label} returned HTTP ${status}, expected ${expected_status}"
+}
+
+run_smoke_checks() {
+  local endpoint_url="$1"
+  assert_http_contains "${endpoint_url}/health" "200" '"status":"ok"' "health"
+  assert_http_contains "${endpoint_url}/api/v1" "200" '"message":"' "api"
+  assert_http_contains "${endpoint_url}/version" "200" '"version":"' "version"
+  assert_http_status "${endpoint_url}/" "404" "root 404"
+  success "Smoke checks passed for ${endpoint_url}"
+}
+
 print_next_steps() {
-  cat <<'EOF'
-Next steps:
-  1. ./scripts/validate.sh all
-  2. ./scripts/resolve-image.sh
-  3. ./scripts/deploy-cdk.sh dev
-     or
-     ./scripts/build-ami.sh dev
-     ./scripts/deploy-terraform.sh dev
-  4. ./scripts/cleanup-cdk.sh dev infra
-     or
-     ./scripts/cleanup-terraform.sh dev infra
-EOF
+  summary_start "Next Steps"
+  summary_next_step "./scripts/validate.sh all"
+  summary_next_step "./scripts/resolve-image.sh"
+  summary_next_step "./scripts/deploy-cdk.sh dev"
+  summary_next_step "./scripts/build-ami.sh dev && ./scripts/deploy-terraform.sh dev"
+  summary_next_step "./scripts/cleanup-cdk.sh dev infra or ./scripts/cleanup-terraform.sh dev infra"
 }

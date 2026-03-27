@@ -16,6 +16,7 @@ if [[ "$CLEANUP_MODE" == "full" ]]; then
   require_full_cleanup_confirmation "$DEPLOY_ENV_INPUT"
 fi
 
+section "Cleanup CDK"
 note "Destroying CDK stack for ${DEPLOY_ENV_INPUT}"
 (
   cd "$ROOT_DIR/infra/cdk"
@@ -25,3 +26,9 @@ note "Destroying CDK stack for ${DEPLOY_ENV_INPUT}"
 if [[ "$CLEANUP_MODE" == "full" ]]; then
   delete_service_ami_parameter "$DEPLOY_ENV_INPUT"
 fi
+
+summary_start "CDK Cleanup Summary"
+summary_line "environment" "$DEPLOY_ENV_INPUT"
+summary_line "mode" "$CLEANUP_MODE"
+summary_line "stack" "$(cdk_stack_name_for_env "$DEPLOY_ENV_INPUT")"
+summary_line "ssm parameter" "$( [[ "$CLEANUP_MODE" == "full" ]] && printf deleted || printf retained )"

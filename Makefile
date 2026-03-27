@@ -4,6 +4,7 @@ SHELL := /usr/bin/env bash
 	bootstrap bootstrap-app bootstrap-backend bootstrap-cdk bootstrap-terraform bootstrap-packer \
 	validate validate-app validate-backend validate-cdk validate-terraform validate-packer \
 	login-ghcr resolve-image publish-image build-ami \
+	doctor smoke verify-cdk verify-terraform plan-terraform \
 	deploy-cdk deploy-terraform cleanup-cdk cleanup-terraform
 
 bootstrap:
@@ -53,6 +54,21 @@ publish-image:
 
 build-ami:
 	./scripts/build-ami.sh $(ENV)
+
+doctor:
+	./scripts/doctor.sh $(ENV)
+
+smoke:
+	./scripts/smoke.sh $(TARGET) $(ENV) $(ENDPOINT)
+
+verify-cdk:
+	./scripts/verify-cdk.sh $(ENV) $(ENDPOINT)
+
+verify-terraform:
+	./scripts/verify-terraform.sh $(ENV) $(ENDPOINT)
+
+plan-terraform:
+	./scripts/plan-terraform.sh $(ENV) $(IMAGE)
 
 deploy-cdk:
 	./scripts/deploy-cdk.sh $(ENV) $(IMAGE)

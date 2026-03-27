@@ -17,6 +17,7 @@ if [[ "$CLEANUP_MODE" == "full" ]]; then
   require_full_cleanup_confirmation "$DEPLOY_ENV_INPUT"
 fi
 
+section "Cleanup Terraform"
 note "Destroying Terraform stack for ${DEPLOY_ENV_INPUT}"
 terraform_init_for_mode "$DEPLOY_ENV_INPUT"
 run_in_repo infra/terraform terraform destroy -auto-approve -var-file="$TFVARS_PATH" -var="docker_image=${DOCKER_IMAGE:-${SERVICE_IMAGE_NAME}:latest}"
@@ -24,3 +25,10 @@ run_in_repo infra/terraform terraform destroy -auto-approve -var-file="$TFVARS_P
 if [[ "$CLEANUP_MODE" == "full" ]]; then
   delete_service_ami_parameter "$DEPLOY_ENV_INPUT"
 fi
+
+summary_start "Terraform Cleanup Summary"
+summary_line "environment" "$DEPLOY_ENV_INPUT"
+summary_line "mode" "$CLEANUP_MODE"
+summary_line "backend" "$(resolve_backend_mode)"
+summary_line "tfvars" "$TFVARS_PATH"
+summary_line "ssm parameter" "$( [[ "$CLEANUP_MODE" == "full" ]] && printf deleted || printf retained )"

@@ -10,6 +10,7 @@ PUBLISH_LATEST="${PUBLISH_LATEST:-0}"
 GIT_COMMIT="$(git -C "$ROOT_DIR" rev-parse --short=12 HEAD)"
 BUILD_DATE="$(date -u +%FT%TZ)"
 
+section "Publish Image"
 note "Validating application before publish"
 run_in_repo app go test ./...
 run_in_repo app go build ./cmd/server
@@ -40,9 +41,19 @@ fi
 if command -v docker >/dev/null 2>&1; then
   DIGEST="$(docker buildx imagetools inspect "$IMAGE_REF" --format '{{json .Manifest.Digest}}' 2>/dev/null | tr -d '"' || true)"
   if [[ -n "$DIGEST" ]]; then
+    summary_start "Image Publish Summary"
+    summary_line "image" "$IMAGE_NAME"
+    summary_line "tag" "$IMAGE_TAG"
+    summary_line "digest" "$DIGEST"
+    summary_line "latest" "$( [[ "$PUBLISH_LATEST" == "1" ]] && printf yes || printf no )"
     printf 'Published image: %s@%s\n' "$IMAGE_NAME" "$DIGEST"
     exit 0
   fi
 fi
 
+summary_start "Image Publish Summary"
+summary_line "image" "$IMAGE_NAME"
+summary_line "tag" "$IMAGE_TAG"
+summary_line "digest" "unavailable"
+summary_line "latest" "$( [[ "$PUBLISH_LATEST" == "1" ]] && printf yes || printf no )"
 printf 'Published image tag: %s\n' "$IMAGE_REF"

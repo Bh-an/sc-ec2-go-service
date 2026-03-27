@@ -9,14 +9,21 @@ All scripts are invoked through the `Makefile` at the repo root. Direct invocati
 | `common.sh` | — | Shared functions and constants (sourced by all other scripts) |
 | `bootstrap.sh` | `make bootstrap` | Verify toolchain, create CDKToolkit and S3 state bucket |
 | `validate.sh` | `make validate` | Run all linters and validation checks |
+| `doctor.sh` | `make doctor` | Print operator readiness, AWS identity, resolved image, backend, and AMI state |
 | `resolve-image.sh` | `make resolve-image` | Print the default published GHCR image digest |
 | `login-ghcr.sh` | `make login-ghcr` | Authenticate Docker to GitHub Container Registry |
 | `publish-image.sh` | `make publish-image` | Build and push Docker image to GHCR |
 | `build-ami.sh` | `make build-ami` | Initialize Packer, generate vars, build AMI, publish to SSM |
-| `deploy-cdk.sh` | `make deploy-cdk` | CDK synth + deploy |
-| `deploy-terraform.sh` | `make deploy-terraform` | Terraform init + apply |
+| `smoke.sh` | `make smoke` | Check `/health`, `/api/v1`, `/version`, and `/ -> 404` |
+| `verify-cdk.sh` | `make verify-cdk` | Resolve the CDK endpoint, run smoke checks, print summary |
+| `verify-terraform.sh` | `make verify-terraform` | Resolve Terraform outputs, run smoke checks, print summary |
+| `plan-terraform.sh` | `make plan-terraform` | Terraform init + validate + plan |
+| `deploy-cdk.sh` | `make deploy-cdk` | CDK synth + deploy + verify by default |
+| `deploy-terraform.sh` | `make deploy-terraform` | Terraform init + apply + verify by default |
 | `cleanup-cdk.sh` | `make cleanup-cdk` | CDK destroy (infra or full) |
 | `cleanup-terraform.sh` | `make cleanup-terraform` | Terraform destroy (infra or full) |
+
+Every script now emits section headers and summary blocks so the terminal output reads like a compact runbook instead of a raw command log.
 
 ## Environment Variables
 
@@ -27,6 +34,8 @@ All scripts are invoked through the `Makefile` at the repo root. Direct invocati
 | `IMAGE` | Deploy scripts, resolve-image | Auto-resolved | Docker image reference |
 | `TAG` | publish-image | — (required) | Image tag (e.g., `sha-abc123`) |
 | `BACKEND` | Terraform scripts | `s3` | State backend (`s3` or `local`) |
+| `VERIFY` | Deploy scripts | `1` | Set to `0` to skip deploy-time smoke verification |
+| `ENDPOINT` | smoke, verify, deploy-terraform | auto-resolved | Override endpoint for smoke verification, especially for private/caller-managed flows |
 | `MODE` | Cleanup scripts | — (required) | `infra` (resources only) or `full` (resources + SSM params) |
 | `CONFIRM` | Cleanup scripts (full) | — | Must equal `ENV` to confirm destructive cleanup |
 | `AMI_REGIONS` | build-ami | `""` | Comma-separated regions for AMI replication |
@@ -38,10 +47,10 @@ All scripts are invoked through the `Makefile` at the repo root. Direct invocati
 | Constant | Value | Line |
 |----------|-------|------|
 | `SERVICE_IMAGE_NAME` | `ghcr.io/bh-an/ec2-go-service` | `7` |
-| Preferred Node version | `22` | `72` |
-| Supported Node versions | `20, 22, 24` | `64-68` |
-| TF backend default | `s3` | `106` |
-| SSM parameter pattern | `/sc/ec2-go-service/{env}/ami-id` | `125` |
-| TF state bucket | `sc-ec2-go-service-tfstate-{account}-{region}` | `266` |
-| CDK bootstrap stack | `CDKToolkit` | `347` |
-| AMI name prefix | `ec2-docker-host` | `396` |
+| Preferred Node version | `22` | `107` |
+| Supported Node versions | `20, 22, 24` | `113-123` |
+| TF backend default | `s3` | `161` |
+| SSM parameter pattern | `/sc/ec2-go-service/{env}/ami-id` | `191` |
+| TF state bucket | `sc-ec2-go-service-tfstate-{account}-{region}` | `331` |
+| CDK bootstrap stack | `CDKToolkit` | `415` |
+| AMI name prefix | `ec2-docker-host` | `465` |

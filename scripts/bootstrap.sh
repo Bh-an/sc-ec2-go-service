@@ -7,6 +7,7 @@ TARGET="${1:-all}"
 DEPLOY_ENV_INPUT="${DEPLOY_ENV:-dev}"
 
 bootstrap_app() {
+  section "Bootstrap App"
   note "Checking application tools"
   for tool in git go docker; do
     require_tool "$tool"
@@ -17,6 +18,7 @@ bootstrap_app() {
 }
 
 bootstrap_backend() {
+  section "Bootstrap Backend"
   require_tool aws
   require_aws_env
   note "Preparing Terraform S3 backend"
@@ -24,6 +26,7 @@ bootstrap_backend() {
 }
 
 bootstrap_terraform() {
+  section "Bootstrap Terraform"
   require_tool terraform
   require_tool aws
   require_aws_env
@@ -38,6 +41,7 @@ bootstrap_terraform() {
 }
 
 bootstrap_cdk() {
+  section "Bootstrap CDK"
   for tool in git go node npm aws npx; do
     require_tool "$tool"
   done
@@ -54,6 +58,7 @@ bootstrap_cdk() {
 bootstrap_packer() {
   local packer_dir var_file
 
+  section "Bootstrap Packer"
   require_tool packer
   require_tool aws
   require_aws_env
@@ -96,5 +101,5 @@ case "$TARGET" in
     ;;
 esac
 
-note "Bootstrap complete"
+success "Bootstrap complete"
 print_next_steps

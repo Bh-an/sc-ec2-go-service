@@ -13,6 +13,7 @@ require_tool packer
 require_tool aws
 require_aws_env
 
+section "Build AMI"
 note "Initializing Packer template"
 (
   cd "$packer_dir"
@@ -43,5 +44,14 @@ if [[ "$publish_to_ssm" == "1" ]]; then
   note "Publishing ${ami_id} to ${parameter_name}"
   "$(shared_tf_repo_dir)/scripts/publish-ami-parameter.sh" "$ami_id" "$parameter_name" "$(current_region)" >/dev/null
 fi
+
+summary_start "AMI Build Summary"
+summary_line "environment" "$DEPLOY_ENV_INPUT"
+summary_line "region" "$(current_region)"
+summary_line "ami id" "$ami_id"
+summary_line "replication" "${AMI_REGIONS:-none}"
+summary_line "ssm publish" "$( [[ "$publish_to_ssm" == "1" ]] && printf yes || printf no )"
+summary_line "parameter" "${parameter_name:-not-updated}"
+summary_next_step "make deploy-terraform ENV=${DEPLOY_ENV_INPUT}"
 
 printf '%s\n' "$ami_id"

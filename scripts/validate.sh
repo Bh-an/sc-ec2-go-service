@@ -8,12 +8,14 @@ DEPLOY_ENV_INPUT="${DEPLOY_ENV:-dev}"
 IMAGE_INPUT="${DOCKER_IMAGE:-}"
 
 validate_app() {
+  section "Validate App"
   note "Validating application"
   run_in_repo app go test ./...
   run_in_repo app go build ./cmd/server
 }
 
 validate_backend() {
+  section "Validate Backend"
   require_tool aws
   require_aws_env
 
@@ -26,6 +28,7 @@ validate_backend() {
 }
 
 validate_terraform() {
+  section "Validate Terraform"
   note "Validating Terraform consumer"
   require_tool terraform
   require_tool aws
@@ -38,6 +41,7 @@ validate_terraform() {
 validate_cdk() {
   local resolved_image
 
+  section "Validate CDK"
   note "Validating CDK consumer"
   require_tool aws
   require_aws_env
@@ -55,6 +59,7 @@ validate_cdk() {
 validate_packer() {
   local packer_dir var_file
 
+  section "Validate Packer"
   note "Validating shared Packer build"
   require_tool packer
   require_tool aws
@@ -96,3 +101,5 @@ case "$TARGET" in
     fail "usage: ./scripts/validate.sh [all|app|backend|terraform|cdk|packer]"
     ;;
 esac
+
+success "Validation complete"

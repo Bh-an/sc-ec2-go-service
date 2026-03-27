@@ -15,6 +15,7 @@ End-to-end runbook for deploying and verifying the service on a real AWS account
 
 ```bash
 export AWS_REGION=ap-south-1
+make doctor
 make bootstrap
 make validate
 ```
@@ -44,6 +45,7 @@ Deploy scripts resolve the latest published GHCR digest automatically. You don't
 
 ```bash
 make resolve-image
+make plan-terraform ENV=dev
 ```
 
 Override with a specific reference:
@@ -74,6 +76,12 @@ Or pin an explicit image:
 make deploy-cdk ENV=dev IMAGE=ghcr.io/bh-an/ec2-go-service@sha256:<digest>
 ```
 
+Deploy runs verification automatically unless you opt out:
+
+```bash
+VERIFY=0 make deploy-cdk ENV=dev
+```
+
 **Verify:**
 - Stack deploys successfully
 - EC2 instance is running
@@ -81,6 +89,13 @@ make deploy-cdk ENV=dev IMAGE=ghcr.io/bh-an/ec2-go-service@sha256:<digest>
 - `curl http://<public-ip>/api/v1` → `{"message":"<word>"}`
 - `curl http://<public-ip>/version` → build metadata JSON
 - `curl -i http://<public-ip>/` returns `404 Not Found`
+
+You can rerun the packaged checks directly:
+
+```bash
+make verify-cdk ENV=dev
+make smoke TARGET=cdk ENV=dev
+```
 
 **Cleanup:**
 
@@ -122,6 +137,7 @@ make deploy-terraform ENV=dev
 ```bash
 BACKEND=local make deploy-terraform ENV=dev                          # local state fallback
 BACKEND=s3 make deploy-terraform ENV=dev IMAGE=ghcr.io/bh-an/ec2-go-service@sha256:<digest>
+VERIFY=0 BACKEND=s3 make deploy-terraform ENV=dev                   # skip smoke verification
 ```
 
 </details>
@@ -132,6 +148,13 @@ BACKEND=s3 make deploy-terraform ENV=dev IMAGE=ghcr.io/bh-an/ec2-go-service@sha2
 - `curl http://<public-ip>/health` → `{"status":"ok"}`
 - `curl http://<public-ip>/api/v1` → `{"message":"<word>"}`
 - `curl http://<public-ip>/version` → build metadata JSON
+
+You can rerun the packaged checks directly:
+
+```bash
+BACKEND=s3 make verify-terraform ENV=dev
+make smoke TARGET=terraform ENV=dev
+```
 
 <details>
 <summary>Optional private Terraform validation</summary>

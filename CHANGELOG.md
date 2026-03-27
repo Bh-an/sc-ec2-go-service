@@ -16,6 +16,8 @@ This repo does not carry its own semver tags beyond v0.1.0. Release coordination
 - Added `/version` endpoint with build metadata from the image build
 - Added Terraform exposure-mode support for public, private, and caller-managed hosts
 - Disabled NAT by default for the public Terraform assignment path while keeping it available for private deployments
+- Improved operator output formatting with sectioned logs and summary blocks
+- Deploy commands now verify by default and print post-deploy summaries
 
 ### Added
 - Cleanup commands for deployed infra (`make cleanup-cdk`, `make cleanup-terraform`)
@@ -23,6 +25,7 @@ This repo does not carry its own semver tags beyond v0.1.0. Release coordination
 - AWS testing checklist (`TESTING.md`)
 - Fresh-machine bootstrap and deploy scripts
 - `PROJECT.md` engineering narrative
+- `make doctor`, `make smoke`, `make verify-cdk`, `make verify-terraform`, and `make plan-terraform`
 
 ## [0.1.0] - 2026-03-01
 

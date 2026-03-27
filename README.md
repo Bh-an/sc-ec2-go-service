@@ -6,6 +6,7 @@ The operator and application repo for the Go API service. It owns the applicatio
 
 ```bash
 export AWS_REGION=ap-south-1
+make doctor
 make bootstrap
 make validate
 ```
@@ -35,14 +36,21 @@ For the full AWS deployment and verification checklist, see [TESTING.md](TESTING
 |---------|-------------|------------|
 | `make bootstrap` | Verify tools, create CDKToolkit / S3 state bucket | `TARGET` |
 | `make validate` | Lint and validate all paths | `TARGET` |
+| `make doctor` | Print operator readiness, AWS identity, backend, resolved image, and AMI state | `ENV`, `BACKEND`, `IMAGE` |
 | `make resolve-image` | Print the default published GHCR digest | `IMAGE` (optional override) |
 | `make login-ghcr` | Authenticate to GitHub Container Registry | — |
 | `make publish-image` | Build and push Docker image to GHCR | `TAG` |
 | `make build-ami` | Bake Packer AMI and publish to SSM | `ENV`, `AMI_REGIONS` |
-| `make deploy-cdk` | Deploy via CDK | `ENV`, `IMAGE` |
-| `make deploy-terraform` | Deploy via Terraform | `ENV`, `IMAGE`, `BACKEND` |
+| `make smoke` | Verify `/health`, `/api/v1`, `/version`, and `/ -> 404` | `TARGET`, `ENV`, `ENDPOINT` |
+| `make verify-cdk` | Resolve the CDK endpoint, run smoke checks, print summary | `ENV`, `ENDPOINT` |
+| `make verify-terraform` | Resolve Terraform outputs, run smoke checks, print summary | `ENV`, `ENDPOINT`, `BACKEND` |
+| `make plan-terraform` | Run Terraform init, validate, and plan with the resolved image | `ENV`, `IMAGE`, `BACKEND` |
+| `make deploy-cdk` | Deploy via CDK, verify by default, print post-deploy summary | `ENV`, `IMAGE`, `VERIFY` |
+| `make deploy-terraform` | Deploy via Terraform, verify by default, print post-deploy summary | `ENV`, `IMAGE`, `BACKEND`, `VERIFY`, `ENDPOINT` |
 | `make cleanup-cdk` | Tear down CDK stack | `ENV`, `MODE` (`infra` or `full`) |
 | `make cleanup-terraform` | Tear down Terraform stack | `ENV`, `MODE`, `BACKEND` |
+
+Deploys verify automatically unless you set `VERIFY=0`. Successful and failed runs now end with a summary block that includes the resolved image, endpoint, instance ID, and the next cleanup command.
 
 ## Configured Defaults
 
@@ -52,14 +60,14 @@ For the full AWS deployment and verification checklist, see [TESTING.md](TESTING
 |---------|-------|--------|
 | Application port | `8081` | `app/config.json` |
 | GHCR image | `ghcr.io/bh-an/ec2-go-service` | `scripts/common.sh:7` |
-| Terraform backend | `s3` | `scripts/common.sh:106` |
-| TF state bucket | `sc-ec2-go-service-tfstate-{account}-{region}` | `scripts/common.sh:266` |
-| SSM AMI parameter | `/sc/ec2-go-service/{env}/ami-id` | `scripts/common.sh:125` |
-| CDK bootstrap stack | `CDKToolkit` | `scripts/common.sh:347` |
-| Node.js preferred | `22` (supported: 20, 22, 24) | `scripts/common.sh:64-72` |
-| Default `DEPLOY_ENV` | `dev` | `infra/cdk/main.go:43` |
-| Default `DOCKER_IMAGE` | `ghcr.io/bh-an/ec2-go-service:latest` | `infra/cdk/main.go:141` |
-| AMI name prefix | `ec2-docker-host` | `scripts/common.sh:396` |
+| Terraform backend | `s3` | `scripts/common.sh:161` |
+| TF state bucket | `sc-ec2-go-service-tfstate-{account}-{region}` | `scripts/common.sh:331` |
+| SSM AMI parameter | `/sc/ec2-go-service/{env}/ami-id` | `scripts/common.sh:191` |
+| CDK bootstrap stack | `CDKToolkit` | `scripts/common.sh:415` |
+| Node.js preferred | `22` (supported: 20, 22, 24) | `scripts/common.sh:107` |
+| Default `DEPLOY_ENV` | `dev` | `infra/cdk/main.go:41-43` |
+| Default `DOCKER_IMAGE` | `ghcr.io/bh-an/ec2-go-service:latest` | `infra/cdk/main.go:139-142` |
+| AMI name prefix | `ec2-docker-host` | `scripts/common.sh:465` |
 
 <details>
 <summary>Environment configurations</summary>
