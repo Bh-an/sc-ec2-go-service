@@ -25,5 +25,5 @@ output "has_public_endpoint" {
 
 output "ami_id" {
   description = "Resolved AMI ID used by the service host"
-  value       = module.service.ami_id
+  value       = nonsensitive(module.service.ami_id)
 }
