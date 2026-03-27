@@ -28,11 +28,11 @@ graph LR
 
 ## CDK
 
-The assignment asked for Terraform. I added CDK as the primary path because it seemed like an interesting approach, it was something I wasn't super familiar with, and I thought matching it to smallcase's patterns would be more appreciated.
+The assignment called for IaC, and either Terraform or CDK could have satisfied that. I started with Terraform because it was the familiar path and I already had reusable module patterns in my head for it. CDK became the more interesting path once I had seen more of smallcase's infra patterns and started leaning into the platform-module plus consumer-repo shape.
 
 My only prior experience with anything similar was minimal Pulumi work a while back. CDK and JSII were new territory.
 
-Both paths deploy identical infrastructure. Terraform stays because it was required and because the Packer AMI workflow is worth showing on its own.
+Both paths deploy the same underlying infrastructure model. Terraform stays because it was the natural starting point for me, because I did not want to leave that path half-finished, and because platform teams should leave service owners room to choose the IaC model that fits how they want to manage their infrastructure. CDK stays because it became the more interesting abstraction and the better fit for the repo structure I ended up wanting.
 
 ## JSII
 
