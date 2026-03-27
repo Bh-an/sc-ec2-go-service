@@ -158,13 +158,19 @@ require_terraform_auth_env() {
 resolve_account_id() {
   require_tool aws
   require_aws_env
-  aws sts get-caller-identity --query Account --output text
+  local account_id
+  account_id="$(aws sts get-caller-identity --query Account --output text 2>/dev/null || true)"
+  [[ -n "$account_id" && "$account_id" != "None" ]] || fail "unable to resolve AWS account identity; check AWS credentials and network access"
+  printf '%s' "$account_id"
 }
 
 resolve_aws_arn() {
   require_tool aws
   require_aws_env
-  aws sts get-caller-identity --query Arn --output text
+  local arn
+  arn="$(aws sts get-caller-identity --query Arn --output text 2>/dev/null || true)"
+  [[ -n "$arn" && "$arn" != "None" ]] || fail "unable to resolve AWS caller ARN; check AWS credentials and network access"
+  printf '%s' "$arn"
 }
 
 require_cleanup_mode() {
