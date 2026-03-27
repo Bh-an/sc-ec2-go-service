@@ -22,10 +22,12 @@ type(scope): short description
 | `main` | Stable, tagged releases |
 | `dev` | Integration and release prep |
 | `ci-cd` | Workflow and automation changes only |
+| `docs/*` | Short-lived documentation updates |
 
 ## Pending Branch Protection Plan
 
-This is the intended GitHub policy, but it is not enforced yet:
+> [!NOTE]
+> This is the intended GitHub policy, but it is **not enforced yet**.
 
 - `main` should require pull requests
 - direct pushes to `main` should be blocked
@@ -40,7 +42,10 @@ Until GitHub protection is enabled, contributors should follow the same workflow
 make validate
 ```
 
-This runs app tests, CDK build + synth, and Terraform validate. For scoped checks:
+This runs app tests, CDK build + synth, and Terraform validate.
+
+> [!TIP]
+> For scoped checks:
 
 ```bash
 make validate TARGET=app
