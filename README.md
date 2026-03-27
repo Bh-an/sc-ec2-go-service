@@ -103,7 +103,7 @@ The operator scripts live under [`scripts/`](scripts/) and are exposed through t
 | `make cleanup-cdk` | Tear down CDK stack | `ENV`, `MODE` (`infra` or `full`) |
 | `make cleanup-terraform` | Tear down Terraform stack | `ENV`, `MODE`, `BACKEND` |
 
-Deploys verify automatically unless you set `VERIFY=0`. Successful and failed runs end with a summary block that includes the resolved image, endpoint, instance ID, and the next cleanup command.
+Deploys verify automatically unless you set `VERIFY=0`. Verification now retries with exponential backoff through the initial host bootstrap window before failing. If you want deploys to clean themselves up after verification timeouts or `Ctrl+C`, set `AUTO_CLEANUP_ON_VERIFY_FAILURE=1` and/or `AUTO_CLEANUP_ON_INTERRUPT=1`. Successful and failed runs end with a summary block that includes the resolved image, endpoint, instance ID, and the next cleanup command.
 
 ## Configured Defaults
 

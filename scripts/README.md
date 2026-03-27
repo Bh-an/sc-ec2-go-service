@@ -28,7 +28,7 @@ All scripts are invoked through the root `Makefile`. Direct invocation works, bu
 | `login-ghcr.sh` | `make login-ghcr` | Authenticate Docker to GitHub Container Registry |
 | `publish-image.sh` | `make publish-image` | Build and push Docker image to GHCR |
 | `build-ami.sh` | `make build-ami` | Initialize Packer, generate vars, build AMI, publish to SSM |
-| `smoke.sh` | `make smoke` | Check `/health`, `/api/v1`, `/version`, and `/ -> 404` |
+| `smoke.sh` | `make smoke` | Check `/health`, `/api/v1`, `/version`, and `/ -> 404` with exponential backoff through bootstrap |
 | `verify-cdk.sh` | `make verify-cdk` | Resolve the CDK endpoint, run smoke checks, print summary |
 | `verify-terraform.sh` | `make verify-terraform` | Resolve Terraform outputs, run smoke checks, print summary |
 | `plan-terraform.sh` | `make plan-terraform` | Terraform init + validate + plan |
@@ -48,12 +48,17 @@ Every script emits section headers and summary blocks so the terminal output rea
 | `IMAGE` | Deploy scripts, resolve-image | Auto-resolved | Docker image reference |
 | `TAG` | publish-image | — (required) | Image tag (for example `sha-abc123`) |
 | `BACKEND` | Terraform scripts | `s3` | State backend (`s3` or `local`) |
-
-Terraform commands in this repo expect exported AWS credentials in the current shell. If the AWS CLI is logged in but `terraform init` still fails, run `aws-refresh-env` and retry.
 | `VERIFY` | Deploy scripts | `1` | Set to `0` to skip deploy-time smoke verification |
 | `ENDPOINT` | smoke, verify, deploy-terraform | auto-resolved | Override endpoint for smoke verification |
+| `AUTO_CLEANUP_ON_VERIFY_FAILURE` | Deploy scripts | `0` | Set to `1` to run infra cleanup after verification exhausts its retry window |
+| `AUTO_CLEANUP_ON_INTERRUPT` | Deploy scripts | `0` | Set to `1` to run infra cleanup after `Ctrl+C` / SIGTERM |
+| `SMOKE_ATTEMPTS` | smoke, verify, deploy scripts | `8` | Maximum smoke-check attempts before failure |
+| `SMOKE_INITIAL_INTERVAL_SECONDS` | smoke, verify, deploy scripts | `5` | Initial retry delay before exponential backoff |
+| `SMOKE_MAX_INTERVAL_SECONDS` | smoke, verify, deploy scripts | `30` | Maximum retry delay between smoke attempts |
 | `MODE` | Cleanup scripts | — (required) | `infra` or `full` |
 | `CONFIRM` | Cleanup scripts (full) | — | Must equal `ENV` to confirm destructive cleanup |
 | `AMI_REGIONS` | build-ami | `""` | Comma-separated regions for AMI replication |
 | `PUBLISH_AMI_TO_SSM` | build-ami | `1` | Set to `0` to skip SSM parameter publication |
 | `GITHUB_TOKEN` | login-ghcr, publish-image | — | PAT with `write:packages` for GHCR push |
+
+Terraform commands in this repo expect exported AWS credentials in the current shell. If the AWS CLI is logged in but `terraform init` still fails, run `aws-refresh-env` and retry.

@@ -201,6 +201,26 @@ verify_enabled() {
   esac
 }
 
+is_truthy() {
+  local value="${1:-}"
+  case "$value" in
+    1|true|TRUE|yes|YES|on|ON)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+auto_cleanup_on_verify_failure_enabled() {
+  is_truthy "${AUTO_CLEANUP_ON_VERIFY_FAILURE:-0}"
+}
+
+auto_cleanup_on_interrupt_enabled() {
+  is_truthy "${AUTO_CLEANUP_ON_INTERRUPT:-0}"
+}
+
 require_full_cleanup_confirmation() {
   local environment_name="$1"
   local confirmation="${CONFIRM:-}"
@@ -653,7 +673,9 @@ read_last_http_body() {
   cat /tmp/sc-ec2-go-service-http-body.$$ 2>/dev/null || true
 }
 
-assert_http_contains() {
+SMOKE_LAST_ERROR=""
+
+assert_http_contains_once() {
   local url="$1"
   local expected_status="$2"
   local expected_fragment="$3"
@@ -661,29 +683,74 @@ assert_http_contains() {
   local status body
 
   note "Checking ${label}: ${url}"
-  status="$(http_status "$url")" || fail "${label} request failed: ${url}"
+  status="$(http_status "$url")" || {
+    SMOKE_LAST_ERROR="${label} request failed: ${url}"
+    return 1
+  }
   body="$(read_last_http_body)"
-  [[ "$status" == "$expected_status" ]] || fail "${label} returned HTTP ${status}, expected ${expected_status}"
-  [[ "$body" == *"$expected_fragment"* ]] || fail "${label} response did not contain expected fragment: ${expected_fragment}"
+  if [[ "$status" != "$expected_status" ]]; then
+    SMOKE_LAST_ERROR="${label} returned HTTP ${status}, expected ${expected_status}"
+    return 1
+  fi
+  if [[ "$body" != *"$expected_fragment"* ]]; then
+    SMOKE_LAST_ERROR="${label} response did not contain expected fragment: ${expected_fragment}"
+    return 1
+  fi
 }
 
-assert_http_status() {
+assert_http_status_once() {
   local url="$1"
   local expected_status="$2"
   local label="$3"
   local status
 
   note "Checking ${label}: ${url}"
-  status="$(http_status "$url")" || fail "${label} request failed: ${url}"
-  [[ "$status" == "$expected_status" ]] || fail "${label} returned HTTP ${status}, expected ${expected_status}"
+  status="$(http_status "$url")" || {
+    SMOKE_LAST_ERROR="${label} request failed: ${url}"
+    return 1
+  }
+  if [[ "$status" != "$expected_status" ]]; then
+    SMOKE_LAST_ERROR="${label} returned HTTP ${status}, expected ${expected_status}"
+    return 1
+  fi
+}
+
+run_smoke_checks_once() {
+  local endpoint_url="$1"
+  assert_http_contains_once "${endpoint_url}/health" "200" '"status":"ok"' "health" &&
+    assert_http_contains_once "${endpoint_url}/api/v1" "200" '"message":"' "api" &&
+    assert_http_contains_once "${endpoint_url}/version" "200" '"version":"' "version" &&
+    assert_http_status_once "${endpoint_url}/" "404" "root 404"
 }
 
 run_smoke_checks() {
   local endpoint_url="$1"
-  assert_http_contains "${endpoint_url}/health" "200" '"status":"ok"' "health"
-  assert_http_contains "${endpoint_url}/api/v1" "200" '"message":"' "api"
-  assert_http_contains "${endpoint_url}/version" "200" '"version":"' "version"
-  assert_http_status "${endpoint_url}/" "404" "root 404"
+  local attempts="${SMOKE_ATTEMPTS:-8}"
+  local interval="${SMOKE_INITIAL_INTERVAL_SECONDS:-${SMOKE_INTERVAL_SECONDS:-5}}"
+  local max_interval="${SMOKE_MAX_INTERVAL_SECONDS:-30}"
+  local next_interval
+  local attempt=1
+
+  while (( attempt <= attempts )); do
+    if run_smoke_checks_once "$endpoint_url"; then
+      success "Smoke checks passed for ${endpoint_url}"
+      return 0
+    fi
+
+    if (( attempt == attempts )); then
+      fail "${SMOKE_LAST_ERROR}"
+    fi
+
+    warn "Smoke checks not ready yet (${attempt}/${attempts}); retrying in ${interval}s"
+    sleep "$interval"
+    next_interval=$((interval * 2))
+    if (( next_interval > max_interval )); then
+      next_interval="$max_interval"
+    fi
+    interval="$next_interval"
+    attempt=$((attempt + 1))
+  done
+
   success "Smoke checks passed for ${endpoint_url}"
 }
 

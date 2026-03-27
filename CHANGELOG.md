@@ -19,6 +19,8 @@ This repo does not carry its own semver tags beyond v0.1.0. Release coordination
 - Disabled NAT by default for the public Terraform assignment path while keeping it available for private deployments
 - Improved operator output formatting with sectioned logs and summary blocks
 - Deploy commands now verify by default and print post-deploy summaries
+- Smoke verification now retries with exponential backoff through the initial bootstrap window before failing
+- Deploy scripts can optionally auto-clean up infra after verification timeouts or interrupt signals
 - Terraform commands now fail early with `aws-refresh-env` guidance when exported AWS env creds are missing
 
 ### Added
