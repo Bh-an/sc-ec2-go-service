@@ -257,7 +257,7 @@ make deploy-terraform ENV=dev
 The frozen handoff checkpoint for the Smallcase team uses these refs in every repo:
 
 - branch: `smallcase-baseline-20260327`
-- tag: `handoff-smallcase-20260327`
+- tag: `sc-handoff`
 
 Those refs point to the tested cross-repo baseline for public CDK, public Terraform, Packer AMI publishing, and the shared private CDK example.
 
