@@ -14,6 +14,9 @@ Current shared module pin: `v0.3.5`
 
 - AWS CLI with valid credentials
 - Terraform
+> [!IMPORTANT]
+> A baked AMI must be published to the configured SSM parameter before deploying. Run `make build-ami ENV=dev` from the repo root first.
+
 - a baked AMI published to the configured SSM parameter for the environment
 
 ## Module Sources

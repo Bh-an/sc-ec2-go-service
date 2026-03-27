@@ -61,4 +61,5 @@ Every script emits section headers and summary blocks so the terminal output rea
 | `PUBLISH_AMI_TO_SSM` | build-ami | `1` | Set to `0` to skip SSM parameter publication |
 | `GITHUB_TOKEN` | login-ghcr, publish-image | — | PAT with `write:packages` for GHCR push |
 
-Terraform commands in this repo expect exported AWS credentials in the current shell. If the AWS CLI is logged in but `terraform init` still fails, run `aws-refresh-env` and retry.
+> [!TIP]
+> Terraform commands in this repo expect exported AWS credentials in the current shell. If the AWS CLI is logged in but `terraform init` still fails, run `aws-refresh-env` and retry.
