@@ -1,6 +1,6 @@
 # Go Application
 
-The service application that powers the assignment API. This README is only about app behavior; for deploy/test flow, start at the root [README.md](../README.md) or the AWS runbook in [TESTING.md](../TESTING.md).
+The service application that powers the assignment API. This README is only about app behavior; for deploy and verification flow, start at the root [README.md](../README.md).
 
 ## Context
 

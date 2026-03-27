@@ -5,12 +5,11 @@ The primary deployment path for the service. This directory is the service repo�
 ## Context
 
 - Start at: [repo root README](../../README.md)
-- Full runbook: [TESTING.md](../../TESTING.md)
 - Shared source of truth: [`sc-cdk-service-host-module`](https://github.com/Bh-an/sc-cdk-service-host-module)
 - Published bindings consumed here: [`sc-cdk-service-host-module-go`](https://github.com/Bh-an/sc-cdk-service-host-module-go)
 
 > [!NOTE]
-> Current module dependency: `cdkservicehostmodule v0.3.4` — locally validated in this repo and pending the next fresh-clone public AWS rerun.
+> Current module dependency: `cdkservicehostmodule v0.3.4` — live-verified in the service repo's fresh-clone public CDK flow on `2026-03-27`.
 
 ## Prerequisites
 
@@ -62,4 +61,5 @@ make validate TARGET=cdk
 make deploy-cdk ENV=dev
 make verify-cdk ENV=dev
 make cleanup-cdk ENV=dev MODE=infra
+CONFIRM=dev make cleanup-cdk ENV=dev MODE=full
 ```

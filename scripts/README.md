@@ -1,6 +1,6 @@
 # Operator Scripts
 
-This directory owns the shell operator surface used by the service repo. Start at the [repo root README](../README.md) for the big picture or [TESTING.md](../TESTING.md) for the real AWS runbook.
+This directory owns the shell operator surface used by the service repo. Start at the [repo root README](../README.md) for the big picture and the actual end-to-end command flow.
 
 ## Context
 

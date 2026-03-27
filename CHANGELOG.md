@@ -32,7 +32,7 @@ This repo does not carry its own semver tags beyond v0.1.0. Release coordination
 ### Added
 - Cleanup commands for deployed infra (`make cleanup-cdk`, `make cleanup-terraform`)
 - SSM-backed AMI contract adopted in Terraform consumer
-- AWS testing checklist (`TESTING.md`)
+- AWS testing checklist in the root `README.md`
 - Fresh-machine bootstrap and deploy scripts
 - `PROJECT.md` engineering narrative
 - `make doctor`, `make smoke`, `make verify-cdk`, `make verify-terraform`, and `make plan-terraform`

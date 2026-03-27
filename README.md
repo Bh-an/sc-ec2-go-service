@@ -4,7 +4,6 @@ The application and operator repo for the Go API service. This is the main entry
 
 ## Start Here
 
-- [TESTING.md](TESTING.md) — end-to-end AWS runbook
 - [app/README.md](app/README.md) — Go API contract and local app behavior
 - [infra/cdk/README.md](infra/cdk/README.md) — primary CDK deployment path
 - [infra/terraform/README.md](infra/terraform/README.md) — secondary Terraform deployment path
@@ -61,12 +60,11 @@ Last verified public AWS baseline: a fresh-clone run from `main` completed succe
 | Public CDK deploy / verify / cleanup | `live-verified` |
 | Public Terraform deploy / verify / cleanup | `live-verified` |
 | Packer AMI bake + SSM publish | `live-verified` |
-| CDK shared module v0.3.3 / Go wrapper v0.3.3 | `live-verified` |
-| Terraform shared module v0.3.5 | `live-verified` |
 | CDK shared module v0.3.4 / Go wrapper v0.3.4 | `live-verified` |
-| Terraform shared module v0.3.6 | `local-validated` |
-| Private CDK host behind ALB | `live-verified` (earlier session) |
-| Private Terraform host | `local-validated` (plan only) |
+| Terraform shared module v0.3.6 | `live-verified` |
+| Private CDK host behind ALB | `live-verified` |
+| Private Terraform infra / cleanup | `live-verified` |
+| Private Terraform runtime | `live-tested failure` |
 | `cleanup-cdk MODE=full` | `reviewed-only` |
 | `cleanup-terraform MODE=full` | `not exercised` |
 | GitHub Actions workflows | `reviewed`, not executed |
@@ -180,6 +178,89 @@ Optional extended coverage after that:
 - private Terraform from this repo, verified through SSM port forwarding or another caller-managed endpoint
 - private CDK from the shared example in [`sc-cdk-service-host-module`](https://github.com/Bh-an/sc-cdk-service-host-module), not from this repo
 
+## CDK Workflow
+
+Public CDK is the reference assignment path from this repo.
+
+```bash
+export AWS_REGION=ap-south-1
+aws login
+aws-refresh-env
+nvm use 22
+
+make doctor
+make bootstrap TARGET=cdk
+make validate TARGET=cdk
+make deploy-cdk ENV=dev
+make verify-cdk ENV=dev
+make cleanup-cdk ENV=dev MODE=infra
+```
+
+If CDK bootstrap is missing, use the repo command first:
+
+```bash
+make bootstrap TARGET=cdk
+```
+
+Raw fallback if you want the direct CDK equivalent:
+
+```bash
+npx -y aws-cdk@2 bootstrap aws://<account-id>/ap-south-1
+```
+
+Full cleanup for CDK is also available:
+
+```bash
+CONFIRM=dev make cleanup-cdk ENV=dev MODE=full
+```
+
+`MODE=full` for CDK does not delete the Terraform/AMI SSM parameter. It only tears down CDK-owned infrastructure.
+
+## Terraform Workflow
+
+Terraform is the AMI-backed secondary path. Build the AMI first, then deploy.
+
+```bash
+export AWS_REGION=ap-south-1
+aws login
+aws-refresh-env
+nvm use 22
+
+make doctor
+make bootstrap TARGET=backend
+make validate TARGET=terraform
+make build-ami ENV=dev
+make plan-terraform ENV=dev
+BACKEND=s3 make deploy-terraform ENV=dev
+BACKEND=s3 make verify-terraform ENV=dev
+BACKEND=s3 make cleanup-terraform ENV=dev MODE=infra
+```
+
+Full cleanup for Terraform also deletes the environment AMI SSM parameter:
+
+```bash
+CONFIRM=dev BACKEND=s3 make cleanup-terraform ENV=dev MODE=full
+```
+
+Private Terraform is supported through variables rather than a dedicated convenience target:
+
+```bash
+TF_VAR_exposure_kind=private \
+TF_VAR_enable_nat_gateways=true \
+VERIFY=0 \
+BACKEND=s3 \
+make deploy-terraform ENV=dev
+```
+
+## Smallcase Baseline
+
+The frozen handoff checkpoint for the Smallcase team uses these refs in every repo:
+
+- branch: `smallcase-baseline-20260327`
+- tag: `handoff-smallcase-20260327`
+
+Those refs point to the tested cross-repo baseline for public CDK, public Terraform, Packer AMI publishing, and the shared private CDK example.
+
 ## Configured Defaults
 
 > [!IMPORTANT]
@@ -251,7 +332,7 @@ Image tags: immutable `sha-<commit>` on every publish, `latest` on main.
 | CDK source and Go wrapper | `v0.3.4` |
 | Terraform shared module | `v0.3.6` |
 
-The latest shared versions above are locally validated and pinned in this repo. The last fresh-clone public AWS rerun was completed on the previous public baseline (`v0.3.3` for CDK/Go wrapper and `v0.3.5` for Terraform).
+The latest shared versions above are pinned in this repo and now live-verified through the fresh-clone public AWS rerun completed on `2026-03-27`.
 
 Terraform supports both the assignment-default public host path and a private/caller-managed host path. This repo keeps the public path as the default, with NAT disabled unless you explicitly opt into a private deployment that needs outbound egress.
 

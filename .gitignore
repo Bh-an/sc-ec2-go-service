@@ -21,3 +21,4 @@ infra/cdk/cdk
 *.log
 .DS_Store
 .env
+TESTING.md

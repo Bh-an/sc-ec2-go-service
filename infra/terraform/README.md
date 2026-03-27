@@ -5,7 +5,6 @@ The secondary deployment path. This directory composes the shared Terraform modu
 ## Context
 
 - Start at: [repo root README](../../README.md)
-- Full runbook: [TESTING.md](../../TESTING.md)
 - Shared Terraform/Packer repo: [`sc-tf-service-host-module`](https://github.com/Bh-an/sc-tf-service-host-module)
 
 Current shared module pin: `v0.3.6`
@@ -71,4 +70,5 @@ make build-ami ENV=dev
 make deploy-terraform ENV=dev
 make verify-terraform ENV=dev
 make cleanup-terraform ENV=dev MODE=infra
+CONFIRM=dev BACKEND=s3 make cleanup-terraform ENV=dev MODE=full
 ```
