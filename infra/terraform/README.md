@@ -8,7 +8,7 @@ The secondary deployment path. This directory composes the shared Terraform modu
 - Full runbook: [TESTING.md](../../TESTING.md)
 - Shared Terraform/Packer repo: [`sc-tf-service-host-module`](https://github.com/Bh-an/sc-tf-service-host-module)
 
-Current shared module pin: `v0.3.5`
+Current shared module pin: `v0.3.6`
 
 ## Prerequisites
 
@@ -23,10 +23,10 @@ Current shared module pin: `v0.3.5`
 
 ```hcl
 # 1_network.tf
-source = "git::ssh://git@github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/network?ref=v0.3.5"
+source = "git::ssh://git@github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/network?ref=v0.3.6"
 
 # 2_service.tf
-source = "git::ssh://git@github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/service-host?ref=v0.3.5"
+source = "git::ssh://git@github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/service-host?ref=v0.3.6"
 ```
 
 ## Environment Config Files

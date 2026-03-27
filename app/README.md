@@ -16,7 +16,7 @@ The service application that powers the assignment API. This README is only abou
 
 | Endpoint | Method | Response |
 |----------|--------|----------|
-| `/api/v1` | GET | `{"message":"<random word>"}` — one of: Investments, Portfolio, Stocks, buy-the-dip, TickerTape |
+| `/api/v1` | GET | `{"message":"<random word>"}` — one of: Investments, Smallcase, Stocks, buy-the-dip, TickerTape |
 | `/health` | GET | `{"status":"ok"}` |
 | `/version` | GET | `{"version":"<tag>","gitCommit":"<sha>","buildDate":"<timestamp>"}` |
 

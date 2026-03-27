@@ -38,7 +38,7 @@ Both paths deploy identical infrastructure. Terraform stays because it was requi
 
 Completely new to me. First time with JSII, first time with Projen, first time publishing Go module release workflows instead of just consuming them. Docs and trial and error, mostly.
 
-The constraints came up during implementation. JSII doesn't allow union types, overloads, or certain generics in your API surface. I had to restructure interfaces a few times. The Go wrapper needs its own repo because Go module resolution requires the import path to match an actual GitHub repository. Dual tagging caught me too, every release needs both `v0.3.3` and `cdkservicehostmodule/v0.3.3`, forget the subdirectory tag and `go get` just breaks.
+The constraints came up during implementation. JSII doesn't allow union types, overloads, or certain generics in your API surface. I had to restructure interfaces a few times. The Go wrapper needs its own repo because Go module resolution requires the import path to match an actual GitHub repository. Dual tagging caught me too: every release needs both the repository tag and the subdirectory module tag, forget the subdirectory tag and `go get` just breaks.
 
 Setting up the checksum management and release workflows as a publisher rather than a consumer was the part that took the most learning.
 

@@ -39,6 +39,9 @@ All scripts are invoked through the root `Makefile`. Direct invocation works, bu
 
 Every script emits section headers and summary blocks so the terminal output reads like a compact runbook rather than a raw command log.
 
+> [!NOTE]
+> Cleanup ownership is intentionally split: `cleanup-cdk MODE=full` only tears down CDK-owned infrastructure, while `cleanup-terraform MODE=full` also deletes the environment AMI SSM parameter used by the baked-AMI path.
+
 ## Environment Variables
 
 | Variable | Used By | Default | Description |

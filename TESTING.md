@@ -6,8 +6,8 @@ End-to-end runbook for deploying and verifying the service on a real AWS account
 
 | Dependency | Version |
 |------------|---------|
-| CDK source and Go wrapper | `v0.3.3` |
-| Terraform shared module | `v0.3.5` |
+| CDK source and Go wrapper | `v0.3.4` (`local-validated`, pending fresh-clone rerun) |
+| Terraform shared module | `v0.3.6` (`local-validated`, pending fresh-clone rerun) |
 
 ## Last Verified Public Baseline
 
@@ -128,7 +128,7 @@ make cleanup-cdk ENV=dev MODE=infra
 CONFIRM=dev make cleanup-cdk ENV=dev MODE=full
 ```
 
-`MODE=full` also deletes the SSM parameter `/sc/ec2-go-service/dev/ami-id`.
+`cleanup-cdk MODE=full` does not delete the AMI SSM parameter. CDK uses the stock AL2023 path by default and does not own that Terraform/AMI state.
 
 ## 4. Packer and AMI Publication
 
@@ -203,7 +203,7 @@ CONFIRM=dev BACKEND=s3 make cleanup-terraform ENV=dev MODE=full
 ```
 
 > [!NOTE]
-> Private Terraform paths are `local-validated` (plan only, not deployed end-to-end). `MODE=full` cleanup has not been exercised in the current verification cycle.
+> Private Terraform paths are `local-validated` (plan only, not deployed end-to-end). `cleanup-terraform MODE=full` still owns deletion of the environment AMI SSM parameter and has not been exercised in the current verification cycle.
 
 ## 6. Stop Conditions
 

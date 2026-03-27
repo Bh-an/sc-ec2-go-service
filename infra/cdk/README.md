@@ -10,7 +10,7 @@ The primary deployment path for the service. This directory is the service repo�
 - Published bindings consumed here: [`sc-cdk-service-host-module-go`](https://github.com/Bh-an/sc-cdk-service-host-module-go)
 
 > [!NOTE]
-> Current module dependency: `cdkservicehostmodule v0.3.3` — live-verified via the public deployment path.
+> Current module dependency: `cdkservicehostmodule v0.3.4` — locally validated in this repo and pending the next fresh-clone public AWS rerun.
 
 ## Prerequisites
 

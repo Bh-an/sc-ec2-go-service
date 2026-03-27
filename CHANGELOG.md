@@ -11,8 +11,8 @@ This repo does not carry its own semver tags beyond v0.1.0. Release coordination
 ### Changed
 - Hardened deploy workflow with stricter runtime contract validation
 - Dropped private module access setup (repos are now public)
-- Repinned the CDK consumer to shared module `v0.3.3`
-- Repinned Terraform consumer to shared module `v0.3.5`
+- Repinned the CDK consumer to shared module `v0.3.4`
+- Repinned Terraform consumer to shared module `v0.3.6`
 - Tightened the public API contract to assignment endpoints only (`/api/v1`, `/health`)
 - Added `/version` endpoint with build metadata from the image build
 - Added Terraform exposure-mode support for public, private, and caller-managed hosts
@@ -23,6 +23,10 @@ This repo does not carry its own semver tags beyond v0.1.0. Release coordination
 - Deploy scripts can optionally auto-clean up infra after verification timeouts or interrupt signals
 - Terraform commands now fail early with `aws-refresh-env` guidance when exported AWS env creds are missing
 - Terraform verification now uses the public host root as its smoke base instead of reusing the route-specific `api_endpoint` output
+- Replaced `Portfolio` with `Smallcase` in the `/api/v1` random response pool
+- CI image publishing now injects `/version` build metadata instead of falling back to `dev/unknown/unknown`
+- CDK full cleanup no longer deletes the Terraform/AMI SSM parameter it does not own
+- Added caller-provided KMS key support to the Terraform consumer path
 
 ### Added
 - Cleanup commands for deployed infra (`make cleanup-cdk`, `make cleanup-terraform`)

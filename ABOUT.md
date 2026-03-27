@@ -200,12 +200,15 @@ Last verified: `2026-03-27`
 | Public CDK deploy / verify / cleanup | `live-verified` |
 | Public Terraform deploy / verify / cleanup | `live-verified` |
 | Packer AMI bake + SSM publish | `live-verified` |
-| CDK shared module v0.3.3 | `live-verified` |
+| CDK shared module v0.3.3 / Go wrapper v0.3.3 | `live-verified` |
 | Terraform shared module v0.3.5 | `live-verified` |
+| CDK shared module v0.3.4 / Go wrapper v0.3.4 | `local-validated` |
+| Terraform shared module v0.3.6 | `local-validated` |
 | Private CDK host behind ALB | `live-verified` (earlier session) |
 | Private Terraform host | `local-validated` (plan only) |
 | Caller-managed Terraform host | `local-validated` (plan only) |
-| `MODE=full` cleanup | `not exercised` |
+| `cleanup-cdk MODE=full` | `reviewed-only` |
+| `cleanup-terraform MODE=full` | `not exercised` |
 | `AUTO_CLEANUP_ON_INTERRUPT` | `not exercised` |
 | GitHub Actions workflows | `reviewed`, not executed |
 

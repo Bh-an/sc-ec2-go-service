@@ -1,5 +1,5 @@
 module "network" {
-  source = "git::https://github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/network?ref=v0.3.5"
+  source = "git::https://github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/network?ref=v0.3.6"
 
   region               = var.region
   platform             = var.platform

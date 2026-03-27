@@ -11,7 +11,7 @@ import (
 
 var words = []string{
 	"Investments",
-	"Portfolio",
+	"Smallcase",
 	"Stocks",
 	"buy-the-dip",
 	"TickerTape",

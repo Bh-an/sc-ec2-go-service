@@ -60,11 +60,14 @@ Last verified public AWS baseline: a fresh-clone run from `main` completed succe
 | Public CDK deploy / verify / cleanup | `live-verified` |
 | Public Terraform deploy / verify / cleanup | `live-verified` |
 | Packer AMI bake + SSM publish | `live-verified` |
-| CDK shared module v0.3.3 | `live-verified` |
+| CDK shared module v0.3.3 / Go wrapper v0.3.3 | `live-verified` |
 | Terraform shared module v0.3.5 | `live-verified` |
+| CDK shared module v0.3.4 / Go wrapper v0.3.4 | `local-validated` |
+| Terraform shared module v0.3.6 | `local-validated` |
 | Private CDK host behind ALB | `live-verified` (earlier session) |
 | Private Terraform host | `local-validated` (plan only) |
-| `MODE=full` cleanup | `not exercised` |
+| `cleanup-cdk MODE=full` | `reviewed-only` |
+| `cleanup-terraform MODE=full` | `not exercised` |
 | GitHub Actions workflows | `reviewed`, not executed |
 
 </details>
@@ -228,8 +231,10 @@ Image tags: immutable `sha-<commit>` on every publish, `latest` on main.
 
 | Dependency | Version |
 |------------|---------|
-| CDK source and Go wrapper | `v0.3.3` |
-| Terraform shared module | `v0.3.5` |
+| CDK source and Go wrapper | `v0.3.4` |
+| Terraform shared module | `v0.3.6` |
+
+The latest shared versions above are locally validated and pinned in this repo. The last fresh-clone public AWS rerun was completed on the previous public baseline (`v0.3.3` for CDK/Go wrapper and `v0.3.5` for Terraform).
 
 Terraform supports both the assignment-default public host path and a private/caller-managed host path. This repo keeps the public path as the default, with NAT disabled unless you explicitly opt into a private deployment that needs outbound egress.
 
