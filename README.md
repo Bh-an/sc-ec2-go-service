@@ -36,6 +36,8 @@ make bootstrap
 make validate
 ```
 
+If Terraform commands report missing exported AWS credentials, run `aws-refresh-env` in the same shell and retry.
+
 <details>
 <summary>Scoped bootstrap and validate</summary>
 
@@ -170,7 +172,7 @@ Image tags: immutable `sha-<commit>` on every publish, `latest` on main.
 
 | Dependency | Version |
 |------------|---------|
-| CDK source and Go wrapper | `v0.3.2` |
+| CDK source and Go wrapper | `v0.3.3` |
 | Terraform shared module | `v0.3.5` |
 
 Terraform supports both the assignment-default public host path and a private/caller-managed host path. This repo keeps the public path as the default, with NAT disabled unless you explicitly opt into a private deployment that needs outbound egress.

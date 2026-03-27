@@ -11,6 +11,7 @@ This repo does not carry its own semver tags beyond v0.1.0. Release coordination
 ### Changed
 - Hardened deploy workflow with stricter runtime contract validation
 - Dropped private module access setup (repos are now public)
+- Repinned the CDK consumer to shared module `v0.3.3`
 - Repinned Terraform consumer to shared module `v0.3.5`
 - Tightened the public API contract to assignment endpoints only (`/api/v1`, `/health`)
 - Added `/version` endpoint with build metadata from the image build
@@ -18,6 +19,7 @@ This repo does not carry its own semver tags beyond v0.1.0. Release coordination
 - Disabled NAT by default for the public Terraform assignment path while keeping it available for private deployments
 - Improved operator output formatting with sectioned logs and summary blocks
 - Deploy commands now verify by default and print post-deploy summaries
+- Terraform commands now fail early with `aws-refresh-env` guidance when exported AWS env creds are missing
 
 ### Added
 - Cleanup commands for deployed infra (`make cleanup-cdk`, `make cleanup-terraform`)

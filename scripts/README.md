@@ -48,6 +48,8 @@ Every script emits section headers and summary blocks so the terminal output rea
 | `IMAGE` | Deploy scripts, resolve-image | Auto-resolved | Docker image reference |
 | `TAG` | publish-image | — (required) | Image tag (for example `sha-abc123`) |
 | `BACKEND` | Terraform scripts | `s3` | State backend (`s3` or `local`) |
+
+Terraform commands in this repo expect exported AWS credentials in the current shell. If the AWS CLI is logged in but `terraform init` still fails, run `aws-refresh-env` and retry.
 | `VERIFY` | Deploy scripts | `1` | Set to `0` to skip deploy-time smoke verification |
 | `ENDPOINT` | smoke, verify, deploy-terraform | auto-resolved | Override endpoint for smoke verification |
 | `MODE` | Cleanup scripts | — (required) | `infra` or `full` |

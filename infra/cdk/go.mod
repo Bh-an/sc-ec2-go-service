@@ -3,7 +3,7 @@ module github.com/Bh-an/sc-ec2-go-service/infra/cdk
 go 1.25.0
 
 require (
-	github.com/Bh-an/sc-cdk-service-host-module-go/cdkservicehostmodule v0.3.2
+	github.com/Bh-an/sc-cdk-service-host-module-go/cdkservicehostmodule v0.3.3
 	github.com/aws/aws-cdk-go/awscdk/v2 v2.207.0
 	github.com/aws/jsii-runtime-go v1.127.0
 )

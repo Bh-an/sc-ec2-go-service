@@ -68,6 +68,12 @@ else
   summary_line "cdk bootstrap" "present"
 fi
 
+if terraform_env_creds_present; then
+  summary_line "tf auth env" "exported"
+else
+  summary_line "tf auth env" "missing (run aws-refresh-env)"
+fi
+
 if [[ "$backend_mode" == "s3" ]]; then
   if aws s3api head-bucket --bucket "$bucket_name" >/dev/null 2>&1; then
     summary_line "tf state bucket" "$bucket_name"

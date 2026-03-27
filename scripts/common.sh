@@ -136,6 +136,25 @@ require_aws_env() {
   export AWS_DEFAULT_REGION="$region"
 }
 
+terraform_env_creds_present() {
+  [[ -n "${AWS_ACCESS_KEY_ID:-}" && -n "${AWS_SECRET_ACCESS_KEY:-}" ]]
+}
+
+require_terraform_auth_env() {
+  require_tool aws
+  require_aws_env
+
+  if terraform_env_creds_present; then
+    return 0
+  fi
+
+  if aws sts get-caller-identity >/dev/null 2>&1; then
+    fail "terraform commands in this repo require exported AWS credentials in the current shell; run aws-refresh-env and retry"
+  fi
+
+  fail "aws credentials are not ready; run aws login, then aws-refresh-env, and retry"
+}
+
 resolve_account_id() {
   require_tool aws
   require_aws_env
@@ -392,6 +411,8 @@ EOF
 terraform_init_for_mode() {
   local environment_name="$1"
   local backend_mode="${2:-$(resolve_backend_mode)}"
+
+  require_terraform_auth_env
 
   case "$backend_mode" in
     s3)

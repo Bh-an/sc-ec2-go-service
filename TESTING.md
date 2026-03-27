@@ -6,7 +6,7 @@ End-to-end runbook for deploying and verifying the service on a real AWS account
 
 | Dependency | Version |
 |------------|---------|
-| CDK source and Go wrapper | `v0.3.2` |
+| CDK source and Go wrapper | `v0.3.3` |
 | Terraform shared module | `v0.3.5` |
 
 ## 1. Preflight
@@ -19,6 +19,8 @@ make doctor
 make bootstrap
 make validate
 ```
+
+If Terraform init/plan/apply complains about missing exported AWS credentials, run `aws-refresh-env` in the same shell and rerun the command.
 
 <details>
 <summary>Scoped preflight</summary>

@@ -9,7 +9,7 @@ The primary deployment path for the service. This directory is the service repoâ
 - Shared source of truth: [`sc-cdk-service-host-module`](https://github.com/Bh-an/sc-cdk-service-host-module)
 - Published bindings consumed here: [`sc-cdk-service-host-module-go`](https://github.com/Bh-an/sc-cdk-service-host-module-go)
 
-Current module dependency: `cdkservicehostmodule v0.3.2`
+Current module dependency: `cdkservicehostmodule v0.3.3`
 
 ## Prerequisites
 
