@@ -34,13 +34,14 @@ Quick local preflight:
 
 ```bash
 export AWS_REGION=ap-south-1
+aws-refresh-env
 make doctor
 make bootstrap
 make validate
 ```
 
 > [!TIP]
-> If Terraform commands report missing exported AWS credentials, run `aws-refresh-env` in the same shell and retry.
+> Run `aws-refresh-env` before Terraform or Packer work in a fresh shell. `aws login` alone is not always enough for `terraform init`, `terraform apply`, or `packer build`.
 
 Last verified public AWS baseline: a fresh-clone run from `main` completed successfully on `2026-03-27` for the full public path:
 
@@ -62,7 +63,7 @@ Last verified public AWS baseline: a fresh-clone run from `main` completed succe
 | Packer AMI bake + SSM publish | `live-verified` |
 | CDK shared module v0.3.3 / Go wrapper v0.3.3 | `live-verified` |
 | Terraform shared module v0.3.5 | `live-verified` |
-| CDK shared module v0.3.4 / Go wrapper v0.3.4 | `local-validated` |
+| CDK shared module v0.3.4 / Go wrapper v0.3.4 | `live-verified` |
 | Terraform shared module v0.3.6 | `local-validated` |
 | Private CDK host behind ALB | `live-verified` (earlier session) |
 | Private Terraform host | `local-validated` (plan only) |
@@ -162,6 +163,22 @@ Deploys verify automatically unless you set `VERIFY=0`. Verification now retries
 
 > [!TIP]
 > Set `AUTO_CLEANUP_ON_VERIFY_FAILURE=1` and/or `AUTO_CLEANUP_ON_INTERRUPT=1` to have deploys clean up automatically after verification timeouts or `Ctrl+C`.
+
+## Recommended User Flow
+
+For a new user of this repo, the intended path is:
+
+1. `make doctor`
+2. `make bootstrap`
+3. `make validate`
+4. public CDK deploy / verify / cleanup
+5. `make build-ami`
+6. public Terraform deploy / verify / cleanup
+
+Optional extended coverage after that:
+
+- private Terraform from this repo, verified through SSM port forwarding or another caller-managed endpoint
+- private CDK from the shared example in [`sc-cdk-service-host-module`](https://github.com/Bh-an/sc-cdk-service-host-module), not from this repo
 
 ## Configured Defaults
 

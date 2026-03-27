@@ -202,7 +202,7 @@ Last verified: `2026-03-27`
 | Packer AMI bake + SSM publish | `live-verified` |
 | CDK shared module v0.3.3 / Go wrapper v0.3.3 | `live-verified` |
 | Terraform shared module v0.3.5 | `live-verified` |
-| CDK shared module v0.3.4 / Go wrapper v0.3.4 | `local-validated` |
+| CDK shared module v0.3.4 / Go wrapper v0.3.4 | `live-verified` |
 | Terraform shared module v0.3.6 | `local-validated` |
 | Private CDK host behind ALB | `live-verified` (earlier session) |
 | Private Terraform host | `local-validated` (plan only) |

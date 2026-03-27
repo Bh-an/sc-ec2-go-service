@@ -569,12 +569,56 @@ cdk_stack_name_for_env() {
 cdk_service_endpoint_for_env() {
   local environment_name="$1"
   local stack_name
+  local raw_output=""
+  local attempt
   stack_name="$(cdk_stack_name_for_env "$environment_name")"
-  aws cloudformation describe-stacks \
-    --region "$(current_region)" \
-    --stack-name "$stack_name" \
-    --query "Stacks[0].Outputs[?OutputKey=='ServiceEndpoint'].OutputValue" \
-    --output text 2>/dev/null | tr -d '\r'
+
+  # CloudFormation outputs can lag briefly behind a successful deploy.
+  for attempt in 1 2 3 4 5 6; do
+    raw_output="$(
+      aws cloudformation describe-stacks \
+        --region "$(current_region)" \
+        --stack-name "$stack_name" \
+        --query "Stacks[0].Outputs[?OutputKey=='ServiceEndpoint'] | [0].OutputValue" \
+        --output text 2>/dev/null | tr -d '\r'
+    )"
+
+    if [[ -z "$raw_output" || "$raw_output" == "None" || "$raw_output" == "null" ]]; then
+      raw_output="$(
+        aws cloudformation describe-stacks \
+          --region "$(current_region)" \
+          --stack-name "$stack_name" \
+          --query "Stacks[0].Outputs[?contains(OutputKey, 'ServiceEndpoint')] | [0].OutputValue" \
+          --output text 2>/dev/null | tr -d '\r'
+      )"
+    fi
+
+    if [[ -z "$raw_output" || "$raw_output" == "None" || "$raw_output" == "null" ]]; then
+      raw_output="$(
+        aws cloudformation describe-stacks \
+          --region "$(current_region)" \
+          --stack-name "$stack_name" \
+          --query "Stacks[0].Outputs[0].OutputValue" \
+          --output text 2>/dev/null | tr -d '\r'
+      )"
+    fi
+
+    if [[ -n "$raw_output" && "$raw_output" != "None" && "$raw_output" != "null" ]]; then
+      printf '%s' "$raw_output"
+      return 0
+    fi
+
+    sleep 5
+  done
+
+  return 1
+}
+
+extract_cdk_endpoint_from_log() {
+  local log_path="$1"
+  [[ -f "$log_path" ]] || return 1
+
+  sed -n 's/.*ServiceEndpoint = \(.*\)$/\1/p' "$log_path" | tail -n1
 }
 
 cdk_instance_id_for_env() {

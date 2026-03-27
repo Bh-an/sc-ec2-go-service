@@ -6,7 +6,7 @@ End-to-end runbook for deploying and verifying the service on a real AWS account
 
 | Dependency | Version |
 |------------|---------|
-| CDK source and Go wrapper | `v0.3.4` (`local-validated`, pending fresh-clone rerun) |
+| CDK source and Go wrapper | `v0.3.4` (`live-verified`) |
 | Terraform shared module | `v0.3.6` (`local-validated`, pending fresh-clone rerun) |
 
 ## Last Verified Public Baseline
@@ -35,13 +35,14 @@ Fresh-clone public validation succeeded on `2026-03-27` with:
 
 ```bash
 export AWS_REGION=ap-south-1
+aws-refresh-env
 make doctor
 make bootstrap
 make validate
 ```
 
 > [!TIP]
-> If Terraform init/plan/apply complains about missing exported AWS credentials, run `aws-refresh-env` in the same shell and rerun the command.
+> Run `aws-refresh-env` before Terraform or Packer work in a fresh shell. `aws login` alone is not always enough for `terraform init`, `terraform apply`, or `packer build`.
 
 <details>
 <summary>Scoped preflight</summary>
@@ -205,7 +206,57 @@ CONFIRM=dev BACKEND=s3 make cleanup-terraform ENV=dev MODE=full
 > [!NOTE]
 > Private Terraform paths are `local-validated` (plan only, not deployed end-to-end). `cleanup-terraform MODE=full` still owns deletion of the environment AMI SSM parameter and has not been exercised in the current verification cycle.
 
-## 6. Stop Conditions
+## 6. Optional Extended Coverage
+
+These are useful for deeper verification, but they are not the default service-repo path.
+
+### Private Terraform Live Check
+
+This repo can deploy the private host posture, but it does not create an ALB for you. The simplest live check is:
+
+1. deploy with:
+
+```bash
+aws-refresh-env
+TF_VAR_exposure_kind=private \
+TF_VAR_enable_nat_gateways=true \
+VERIFY=0 \
+BACKEND=s3 \
+make deploy-terraform ENV=dev
+```
+
+2. get the instance ID:
+
+```bash
+terraform -chdir=infra/terraform output -raw instance_id
+```
+
+3. start SSM port forwarding to host port `80`:
+
+```bash
+aws ssm start-session \
+  --region ap-south-1 \
+  --target <instance-id> \
+  --document-name AWS-StartPortForwardingSession \
+  --parameters '{"portNumber":["80"],"localPortNumber":["18080"]}'
+```
+
+4. verify through the forwarded endpoint:
+
+```bash
+ENDPOINT=http://127.0.0.1:18080 BACKEND=s3 make verify-terraform ENV=dev
+```
+
+### Private CDK Example
+
+Private CDK validation is not part of the service-repo operator path. Use the shared example in [`sc-cdk-service-host-module/examples/consumer-proof-stack.ts`](https://github.com/Bh-an/sc-cdk-service-host-module/blob/main/examples/consumer-proof-stack.ts) when you want to validate:
+
+- `PublicServiceHost`
+- `PrivateServiceHost`
+- ALB to private host routing
+- the same `/health`, `/api/v1`, `/version`, and `/ -> 404` contract
+
+## 7. Stop Conditions
 
 > [!WARNING]
 > Stop and fix the repo before continuing if any of these happen:

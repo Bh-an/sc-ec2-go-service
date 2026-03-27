@@ -23,6 +23,7 @@ This repo does not carry its own semver tags beyond v0.1.0. Release coordination
 - Deploy scripts can optionally auto-clean up infra after verification timeouts or interrupt signals
 - Terraform commands now fail early with `aws-refresh-env` guidance when exported AWS env creds are missing
 - Terraform verification now uses the public host root as its smoke base instead of reusing the route-specific `api_endpoint` output
+- CDK deploy-time verification now resolves the endpoint more reliably by retrying CloudFormation output lookup and falling back to the deploy log output
 - Replaced `Portfolio` with `Smallcase` in the `/api/v1` random response pool
 - CI image publishing now injects `/version` build metadata instead of falling back to `dev/unknown/unknown`
 - CDK full cleanup no longer deletes the Terraform/AMI SSM parameter it does not own
