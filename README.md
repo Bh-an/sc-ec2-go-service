@@ -61,7 +61,7 @@ Last verified public AWS baseline: a fresh-clone run from `main` completed succe
 | Public Terraform deploy / verify / cleanup | `live-verified` |
 | Packer AMI bake + SSM publish | `live-verified` |
 | CDK shared module v0.3.4 / Go wrapper v0.3.4 | `live-verified` |
-| Terraform shared module v0.3.6 | `live-verified` |
+| Terraform shared module v0.3.7 | `live-verified` |
 | Private CDK host behind ALB | `live-verified` |
 | Private Terraform infra / cleanup | `live-verified` |
 | Private Terraform runtime | `live-tested failure` |
@@ -151,11 +151,16 @@ The operator scripts live under [`scripts/`](scripts/) and are exposed through t
 | `make smoke` | Verify `/health`, `/api/v1`, `/version`, and `/ -> 404` | `TARGET`, `ENV`, `ENDPOINT` |
 | `make verify-cdk` | Resolve the CDK endpoint, run smoke checks, print summary | `ENV`, `ENDPOINT` |
 | `make verify-terraform` | Resolve Terraform outputs, run smoke checks, print summary | `ENV`, `ENDPOINT`, `BACKEND` |
+| `make verify-terraform-private` | Verify the private Terraform host through the default localhost tunnel endpoint | `ENV`, `ENDPOINT`, `BACKEND` |
 | `make plan-terraform` | Run Terraform init, validate, and plan with the resolved image | `ENV`, `IMAGE`, `BACKEND` |
+| `make plan-terraform-private` | Plan the private Terraform host with private exposure and NAT enabled by default | `ENV`, `IMAGE`, `BACKEND` |
 | `make deploy-cdk` | Deploy via CDK, verify by default, print post-deploy summary | `ENV`, `IMAGE`, `VERIFY` |
 | `make deploy-terraform` | Deploy via Terraform, verify by default, print post-deploy summary | `ENV`, `IMAGE`, `BACKEND`, `VERIFY`, `ENDPOINT` |
+| `make deploy-terraform-private` | Deploy the private Terraform host with private exposure and NAT enabled by default | `ENV`, `IMAGE`, `BACKEND`, `VERIFY` |
+| `make tunnel-terraform-private` | Open an SSM port-forward tunnel to the private Terraform host | `ENV`, `BACKEND` |
 | `make cleanup-cdk` | Tear down CDK stack | `ENV`, `MODE` (`infra` or `full`) |
 | `make cleanup-terraform` | Tear down Terraform stack | `ENV`, `MODE`, `BACKEND` |
+| `make cleanup-terraform-private` | Tear down the private Terraform host | `ENV`, `MODE`, `BACKEND` |
 
 Deploys verify automatically unless you set `VERIFY=0`. Verification now retries with exponential backoff through the initial host bootstrap window before failing. Successful and failed runs end with a summary block that includes the resolved image, endpoint, instance ID, and the next cleanup command.
 
@@ -175,7 +180,7 @@ For a new user of this repo, the intended path is:
 
 Optional extended coverage after that:
 
-- private Terraform from this repo, verified through SSM port forwarding or another caller-managed endpoint
+- private Terraform from this repo through the dedicated `*-terraform-private` targets
 - private CDK from the shared example in [`sc-cdk-service-host-module`](https://github.com/Bh-an/sc-cdk-service-host-module), not from this repo
 
 ## CDK Workflow
@@ -242,24 +247,36 @@ Full cleanup for Terraform also deletes the environment AMI SSM parameter:
 CONFIRM=dev BACKEND=s3 make cleanup-terraform ENV=dev MODE=full
 ```
 
-Private Terraform is supported through variables rather than a dedicated convenience target:
+Private Terraform now has first-class convenience targets from this repo:
 
 ```bash
-TF_VAR_exposure_kind=private \
-TF_VAR_enable_nat_gateways=true \
-VERIFY=0 \
-BACKEND=s3 \
-make deploy-terraform ENV=dev
+make build-ami ENV=dev
+BACKEND=s3 make plan-terraform-private ENV=dev
+BACKEND=s3 make deploy-terraform-private ENV=dev
+BACKEND=s3 make tunnel-terraform-private ENV=dev
+BACKEND=s3 make verify-terraform-private ENV=dev
+BACKEND=s3 make cleanup-terraform-private ENV=dev MODE=infra
 ```
+
+These private Terraform wrappers default to:
+
+- `TF_VAR_exposure_kind=private`
+- `TF_VAR_enable_nat_gateways=true`
+- verification through `http://127.0.0.1:18080`
+
+Override the tunnel ports with `PRIVATE_TERRAFORM_LOCAL_PORT` and `PRIVATE_TERRAFORM_REMOTE_PORT` if needed.
 
 ## Smallcase Baseline
 
-The frozen handoff checkpoint for the Smallcase team uses these refs in every repo:
+The frozen handoff checkpoint for the Smallcase team lives in this repo:
 
 - branch: `smallcase-baseline-20260327`
 - tag: `sc-handoff`
 
-Those refs point to the tested cross-repo baseline for public CDK, public Terraform, Packer AMI publishing, and the shared private CDK example.
+That service baseline is pinned to the tested shared release lines:
+
+- CDK Go wrapper: `v0.3.4`
+- Terraform shared modules: `v0.3.7`
 
 ## Configured Defaults
 
@@ -330,7 +347,7 @@ Image tags: immutable `sha-<commit>` on every publish, `latest` on main.
 | Dependency | Version |
 |------------|---------|
 | CDK source and Go wrapper | `v0.3.4` |
-| Terraform shared module | `v0.3.6` |
+| Terraform shared module | `v0.3.7` |
 
 The latest shared versions above are pinned in this repo and now live-verified through the fresh-clone public AWS rerun completed on `2026-03-27`.
 

@@ -104,6 +104,34 @@ configure_private_module_env() {
   return 0
 }
 
+private_terraform_exposure_kind() {
+  printf '%s' "${TF_VAR_exposure_kind:-private}"
+}
+
+private_terraform_nat_gateways() {
+  printf '%s' "${TF_VAR_enable_nat_gateways:-true}"
+}
+
+apply_private_terraform_defaults() {
+  export TF_VAR_exposure_kind
+  TF_VAR_exposure_kind="$(private_terraform_exposure_kind)"
+
+  export TF_VAR_enable_nat_gateways
+  TF_VAR_enable_nat_gateways="$(private_terraform_nat_gateways)"
+}
+
+private_terraform_remote_port() {
+  printf '%s' "${PRIVATE_TERRAFORM_REMOTE_PORT:-80}"
+}
+
+private_terraform_local_port() {
+  printf '%s' "${PRIVATE_TERRAFORM_LOCAL_PORT:-18080}"
+}
+
+private_terraform_endpoint() {
+  printf 'http://127.0.0.1:%s' "$(private_terraform_local_port)"
+}
+
 check_preferred_node() {
   require_tool node
   local node_version node_major

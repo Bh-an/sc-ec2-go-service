@@ -31,11 +31,16 @@ All scripts are invoked through the root `Makefile`. Direct invocation works, bu
 | `smoke.sh` | `make smoke` | Check `/health`, `/api/v1`, `/version`, and `/ -> 404` with exponential backoff through bootstrap |
 | `verify-cdk.sh` | `make verify-cdk` | Resolve the CDK endpoint, run smoke checks, print summary |
 | `verify-terraform.sh` | `make verify-terraform` | Resolve Terraform outputs, run smoke checks, print summary |
+| `verify-terraform-private.sh` | `make verify-terraform-private` | Run private Terraform smoke checks through the default localhost tunnel endpoint |
 | `plan-terraform.sh` | `make plan-terraform` | Terraform init + validate + plan |
+| `plan-terraform-private.sh` | `make plan-terraform-private` | Private Terraform plan with `exposure_kind=private` and NAT enabled by default |
 | `deploy-cdk.sh` | `make deploy-cdk` | CDK synth + deploy + verify by default |
 | `deploy-terraform.sh` | `make deploy-terraform` | Terraform init + apply + verify by default |
+| `deploy-terraform-private.sh` | `make deploy-terraform-private` | Private Terraform apply with `exposure_kind=private`, NAT enabled, and deploy-time verify disabled by default |
+| `tunnel-terraform-private.sh` | `make tunnel-terraform-private` | Open an SSM port-forward tunnel to the private Terraform host |
 | `cleanup-cdk.sh` | `make cleanup-cdk` | CDK destroy (infra or full) |
 | `cleanup-terraform.sh` | `make cleanup-terraform` | Terraform destroy (infra or full) |
+| `cleanup-terraform-private.sh` | `make cleanup-terraform-private` | Convenience wrapper for private Terraform teardown |
 
 Every script emits section headers and summary blocks so the terminal output reads like a compact runbook rather than a raw command log.
 
@@ -53,6 +58,8 @@ Every script emits section headers and summary blocks so the terminal output rea
 | `BACKEND` | Terraform scripts | `s3` | State backend (`s3` or `local`) |
 | `VERIFY` | Deploy scripts | `1` | Set to `0` to skip deploy-time smoke verification |
 | `ENDPOINT` | smoke, verify, deploy-terraform | auto-resolved | Override endpoint for smoke verification |
+| `PRIVATE_TERRAFORM_LOCAL_PORT` | private Terraform tunnel/verify | `18080` | Local port for the SSM port-forward session |
+| `PRIVATE_TERRAFORM_REMOTE_PORT` | private Terraform tunnel/verify | `80` | Remote port forwarded from the private host |
 | `AUTO_CLEANUP_ON_VERIFY_FAILURE` | Deploy scripts | `0` | Set to `1` to run infra cleanup after verification exhausts its retry window |
 | `AUTO_CLEANUP_ON_INTERRUPT` | Deploy scripts | `0` | Set to `1` to run infra cleanup after `Ctrl+C` / SIGTERM |
 | `SMOKE_ATTEMPTS` | smoke, verify, deploy scripts | `8` | Maximum smoke-check attempts before failure |
@@ -66,3 +73,21 @@ Every script emits section headers and summary blocks so the terminal output rea
 
 > [!TIP]
 > Terraform commands in this repo expect exported AWS credentials in the current shell. If the AWS CLI is logged in but `terraform init` still fails, run `aws-refresh-env` and retry.
+
+## Private Terraform Flow
+
+The public Terraform path remains the default assignment flow. For first-class private-host operations, use the dedicated wrapper targets:
+
+```bash
+make plan-terraform-private ENV=dev
+BACKEND=s3 make deploy-terraform-private ENV=dev
+BACKEND=s3 make tunnel-terraform-private ENV=dev
+BACKEND=s3 make verify-terraform-private ENV=dev
+BACKEND=s3 make cleanup-terraform-private ENV=dev MODE=infra
+```
+
+These wrappers default to:
+
+- `TF_VAR_exposure_kind=private`
+- `TF_VAR_enable_nat_gateways=true`
+- `VERIFY=0` during deploy, because private verification expects the SSM tunnel to be up first

@@ -7,7 +7,7 @@ The secondary deployment path. This directory composes the shared Terraform modu
 - Start at: [repo root README](../../README.md)
 - Shared Terraform/Packer repo: [`sc-tf-service-host-module`](https://github.com/Bh-an/sc-tf-service-host-module)
 
-Current shared module pin: `v0.3.6`
+Current shared module pin: `v0.3.7`
 
 ## Prerequisites
 
@@ -22,10 +22,10 @@ Current shared module pin: `v0.3.6`
 
 ```hcl
 # 1_network.tf
-source = "git::ssh://git@github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/network?ref=v0.3.6"
+source = "git::ssh://git@github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/network?ref=v0.3.7"
 
 # 2_service.tf
-source = "git::ssh://git@github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/service-host?ref=v0.3.6"
+source = "git::ssh://git@github.com/Bh-an/sc-tf-service-host-module.git//terraform/modules/service-host?ref=v0.3.7"
 ```
 
 ## Environment Config Files
@@ -72,3 +72,27 @@ make verify-terraform ENV=dev
 make cleanup-terraform ENV=dev MODE=infra
 CONFIRM=dev BACKEND=s3 make cleanup-terraform ENV=dev MODE=full
 ```
+
+## Private Host Workflow
+
+Use the dedicated private wrapper targets from the repo root when you want the service-repo operator flow rather than ad hoc Terraform vars:
+
+```bash
+make build-ami ENV=dev
+BACKEND=s3 make plan-terraform-private ENV=dev
+BACKEND=s3 make deploy-terraform-private ENV=dev
+BACKEND=s3 make tunnel-terraform-private ENV=dev
+BACKEND=s3 make verify-terraform-private ENV=dev
+BACKEND=s3 make cleanup-terraform-private ENV=dev MODE=infra
+```
+
+These wrappers default to:
+
+- `TF_VAR_exposure_kind=private`
+- `TF_VAR_enable_nat_gateways=true`
+- private verification through `http://127.0.0.1:18080`
+
+Override the tunnel ports with:
+
+- `PRIVATE_TERRAFORM_LOCAL_PORT`
+- `PRIVATE_TERRAFORM_REMOTE_PORT`
