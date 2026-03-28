@@ -114,16 +114,16 @@ variable "enable_nat_gateways" {
 variable "ingress_rules" {
   description = "Security group ingress rules for the application instance."
   type = list(object({
-    port        = number
-    description = string
-    cidr        = optional(string)
+    port                     = number
+    description              = string
+    cidr                     = optional(string)
     source_security_group_id = optional(string)
   }))
   default = null
 
   validation {
-    condition = var.ingress_rules == null || alltrue([
-      for rule in var.ingress_rules :
+    condition = alltrue([
+      for rule in coalesce(var.ingress_rules, []) :
       ((rule.cidr != null ? 1 : 0) + (rule.source_security_group_id != null ? 1 : 0)) == 1
     ])
     error_message = "Each ingress rule must set exactly one of cidr or source_security_group_id."

@@ -15,6 +15,7 @@ on:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  DEFAULT_AWS_REGION: ap-south-1
 
 permissions:
   id-token: write
@@ -35,6 +36,7 @@ jobs:
       - uses: actions/setup-go@v6
         with:
           go-version-file: infra/cdk/go.mod
+          cache-dependency-path: infra/cdk/go.sum
 
       - uses: actions/setup-node@v6
         with:
@@ -43,7 +45,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          aws-region: ${{ vars.AWS_REGION }}
+          aws-region: ${{ vars.AWS_REGION || env.DEFAULT_AWS_REGION }}
           role-to-assume: ${{ secrets.AWS_ROLE_TO_ASSUME }}
 
       - name: Install CDK CLI

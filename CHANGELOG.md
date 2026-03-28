@@ -28,6 +28,7 @@ This repo does not carry its own semver tags beyond v0.1.0. Release coordination
 - CI image publishing now injects `/version` build metadata instead of falling back to `dev/unknown/unknown`
 - CDK full cleanup no longer deletes the Terraform/AMI SSM parameter it does not own
 - Added caller-provided KMS key support to the Terraform consumer path
+- Service GitHub deploy workflows now fall back to `ap-south-1` when the environment-level `AWS_REGION` variable is unset, and Go workflow caching now points at the actual module paths
 
 ### Added
 - Cleanup commands for deployed infra (`make cleanup-cdk`, `make cleanup-terraform`)
