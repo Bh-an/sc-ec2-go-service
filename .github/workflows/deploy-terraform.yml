@@ -1,4 +1,4 @@
-name: deploy-terraform
+name: deploy-terraform (disabled)
 
 on:
   workflow_dispatch:
@@ -23,6 +23,7 @@ permissions:
 
 jobs:
   deploy:
+    if: ${{ false }} # intentionally disabled; use local operator flows instead
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     concurrency:
