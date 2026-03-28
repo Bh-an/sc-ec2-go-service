@@ -263,6 +263,7 @@ These private Terraform wrappers default to:
 - `TF_VAR_exposure_kind=private`
 - `TF_VAR_enable_nat_gateways=true`
 - verification through `http://127.0.0.1:18080`
+- `make tunnel-terraform-private` requires the AWS Session Manager Plugin to be installed locally
 
 Override the tunnel ports with `PRIVATE_TERRAFORM_LOCAL_PORT` and `PRIVATE_TERRAFORM_REMOTE_PORT` if needed.
 

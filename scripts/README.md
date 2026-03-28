@@ -91,3 +91,4 @@ These wrappers default to:
 - `TF_VAR_exposure_kind=private`
 - `TF_VAR_enable_nat_gateways=true`
 - `VERIFY=0` during deploy, because private verification expects the SSM tunnel to be up first
+- `make tunnel-terraform-private` requires the AWS Session Manager Plugin to be installed locally
