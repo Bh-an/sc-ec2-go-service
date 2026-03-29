@@ -63,11 +63,10 @@ Last verified public AWS baseline: a fresh-clone run from `main` completed succe
 | CDK shared module v0.3.4 / Go wrapper v0.3.4 | `live-verified` |
 | Terraform shared module v0.3.7 | `live-verified` |
 | Private CDK host behind ALB | `live-verified` |
-| Private Terraform infra / cleanup | `live-verified` |
-| Private Terraform runtime | `live-tested failure` |
+| Private Terraform deploy / runtime / cleanup | `live-verified` (runtime proven via on-host SSM smoke) |
 | `cleanup-cdk MODE=full` | `reviewed-only` |
 | `cleanup-terraform MODE=full` | `not exercised` |
-| GitHub Actions workflows | `reviewed`, not executed |
+| GitHub Actions workflows | `test`, `publish-image`, `deploy-cdk`, and `deploy-terraform` were exercised; the two AWS deploy workflows are now disabled on `main` |
 
 </details>
 

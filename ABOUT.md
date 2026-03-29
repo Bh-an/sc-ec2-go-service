@@ -73,7 +73,7 @@ Both paths produce the same deployed state. CDK is the primary path because:
 - The construct library publishes as npm + Go module via JSII
 - CloudFormation handles state — no S3 backend to manage
 
-Terraform is kept because the assignment asked for it, it demonstrates the Packer workflow, and some teams genuinely prefer it.
+Terraform is kept because it was the familiar starting path, it demonstrates the Packer workflow, and some teams genuinely prefer managing infra that way.
 
 ```mermaid
 flowchart LR
@@ -180,7 +180,7 @@ Step 2 depends on step 1 (Go bindings generated from tagged TypeScript source). 
 | Current choice | Production alternative |
 |---------------|----------------------|
 | Single AZ | Multi-AZ for availability |
-| Direct EIP on CDK path | ALB in front (PrivateServiceHost already supports this) |
+| Direct EIP on CDK path | ALB in front (PrivateServiceHost can sit behind a caller-managed ALB) |
 | Public GHCR | Private ECR or authenticated GHCR |
 | NAT Gateway optional | Required for private hosts with outbound needs |
 | `BACKEND=local` fallback | S3-only in team settings |
@@ -201,15 +201,14 @@ Last verified: `2026-03-27`
 | Public Terraform deploy / verify / cleanup | `live-verified` |
 | Packer AMI bake + SSM publish | `live-verified` |
 | CDK shared module v0.3.4 / Go wrapper v0.3.4 | `live-verified` |
-| Terraform shared module v0.3.6 | `live-verified` |
+| Terraform shared module v0.3.7 | `live-verified` |
 | Private CDK host behind ALB | `live-verified` |
-| Private Terraform infra / cleanup | `live-verified` |
-| Private Terraform runtime | `live-tested failure` |
+| Private Terraform deploy / runtime / cleanup | `live-verified` (runtime proven via on-host SSM smoke) |
 | Caller-managed Terraform host | `local-validated` (plan only) |
 | `cleanup-cdk MODE=full` | `reviewed-only` |
 | `cleanup-terraform MODE=full` | `not exercised` |
 | `AUTO_CLEANUP_ON_INTERRUPT` | `not exercised` |
-| GitHub Actions workflows | `reviewed`, not executed |
+| GitHub Actions workflows | `test`, `publish-image`, `deploy-cdk`, and `deploy-terraform` were exercised; the AWS deploy workflows are now disabled on `main` |
 
 </details>
 

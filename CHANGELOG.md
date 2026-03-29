@@ -9,10 +9,10 @@ This repo does not carry its own semver tags beyond v0.1.0. Release coordination
 ## [Unreleased]
 
 ### Changed
-- Hardened deploy workflow with stricter runtime contract validation
+- Tightened deploy workflow with stricter runtime contract validation
 - Dropped private module access setup (repos are now public)
 - Repinned the CDK consumer to shared module `v0.3.4`
-- Repinned Terraform consumer to shared module `v0.3.6`
+- Repinned Terraform consumer to shared module `v0.3.7`
 - Tightened the public API contract to assignment endpoints only (`/api/v1`, `/health`)
 - Added `/version` endpoint with build metadata from the image build
 - Added Terraform exposure-mode support for public, private, and caller-managed hosts
@@ -30,6 +30,8 @@ This repo does not carry its own semver tags beyond v0.1.0. Release coordination
 - Added caller-provided KMS key support to the Terraform consumer path
 - Service GitHub deploy workflows now fall back to `ap-south-1` when the environment-level `AWS_REGION` variable is unset, and Go workflow caching now points at the actual module paths
 - Added first-class private Terraform operator wrappers for plan, deploy, tunnel, verify, and cleanup
+- Private Terraform operator flow now handles non-public outputs correctly, gives private-specific next steps, and documents the Session Manager Plugin requirement for local tunneling
+- Disabled the GitHub AWS deploy workflows on `main`; local operator flows remain the supported deployment path
 
 ### Added
 - Cleanup commands for deployed infra (`make cleanup-cdk`, `make cleanup-terraform`)
