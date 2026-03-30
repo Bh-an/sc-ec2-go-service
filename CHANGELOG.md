@@ -31,7 +31,7 @@ This repo does not carry its own semver tags beyond v0.1.0. Release coordination
 - Service GitHub deploy workflows now fall back to `ap-south-1` when the environment-level `AWS_REGION` variable is unset, and Go workflow caching now points at the actual module paths
 - Added first-class private Terraform operator wrappers for plan, deploy, tunnel, verify, and cleanup
 - Private Terraform operator flow now handles non-public outputs correctly, gives private-specific next steps, and documents the Session Manager Plugin requirement for local tunneling
-- Disabled the GitHub AWS deploy workflows on `main`; local operator flows remain the supported deployment path
+- Marked the GitHub AWS deploy workflows as automated but disabled on `main`; local operator flows remain the supported deployment path
 
 ### Added
 - Cleanup commands for deployed infra (`make cleanup-cdk`, `make cleanup-terraform`)

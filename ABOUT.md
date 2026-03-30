@@ -208,7 +208,7 @@ Last verified: `2026-03-27`
 | `cleanup-cdk MODE=full` | `reviewed-only` |
 | `cleanup-terraform MODE=full` | `not exercised` |
 | `AUTO_CLEANUP_ON_INTERRUPT` | `not exercised` |
-| GitHub Actions workflows | `test`, `publish-image`, `deploy-cdk`, and `deploy-terraform` were exercised; the AWS deploy workflows are now disabled on `main` |
+| GitHub Actions workflows | `test`, `publish-image`, `deploy-cdk`, and `deploy-terraform` were exercised; the AWS deploy workflows are fully configured, but currently disabled on `main` |
 
 </details>
 

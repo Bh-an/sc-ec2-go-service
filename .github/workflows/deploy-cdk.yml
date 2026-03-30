@@ -1,4 +1,4 @@
-name: deploy-cdk (disabled)
+name: deploy-cdk (automated, disabled)
 
 on:
   workflow_dispatch:
@@ -23,7 +23,7 @@ permissions:
 
 jobs:
   deploy:
-    if: ${{ false }} # intentionally disabled; use local operator flows instead
+    if: ${{ false }} # fully configured and verified, but intentionally disabled on main; use local operator flows instead
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment }}
     concurrency:
